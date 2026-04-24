@@ -7,6 +7,9 @@
     data-selected-section-5="{{ preview_state.selected_models.section_5 }}"
     data-selected-section-6="{{ preview_state.selected_models.section_6 }}"
 >
+    <div class="template-preview-background" data-preview-background hidden>
+        <img src="" alt="" data-preview-background-image>
+    </div>
     {% for section in preview_sections %}
         {% if section.key == "section_1" %}
             <section class="template-preview-section template-preview-section--{{ section.key }}" data-preview-section="{{ section.key }}" data-selected-model="{{ section.selected_model }}">
@@ -19,7 +22,7 @@
         {% endif %}
     {% endfor %}
 
-    <div class="template-preview-title">2026 First Term Report Sheet</div>
+    <div class="template-preview-title" data-preview-result-title>2026 First Term Report Sheet</div>
 
     <div class="template-preview-combined template-preview-combined--s3m3">
         <div class="template-preview-combined-s2" data-combined-preview="section_2">
@@ -67,8 +70,5 @@
             {% endif %}
         {% endif %}
     {% endfor %}
-
-    <div class="template-preview-footer-note">
-        Nursery default preview wired from Section Models 1, 3, 1, 1, 3, 1
-    </div>
+    <div class="template-preview-footer-note" data-preview-footer-text hidden></div>
 </div>

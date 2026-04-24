@@ -1,7 +1,16 @@
+import json
+
 from django.contrib import messages
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
 from .selectors_template_editor import get_school, serialize_school
+from .services.template_editor_state import (
+    DEFAULT_TEMPLATE_NAME,
+    list_template_editor_templates,
+    load_template_editor_state,
+    save_template_editor_state,
+)
 from .services.template_preview import (
     build_combined_preview_variants,
     build_layout_sections,
@@ -273,8 +282,14 @@ def _require_school_access(request, school_id):
     return school, None
 
 
-def _read_selected_models(request):
+def _read_selected_models(request, template_state=None):
     selected_models = get_default_selected_models()
+    saved_models = (template_state or {}).get("selected_models", {})
+
+    for section_key in selected_models:
+        value = (saved_models.get(section_key) or "").strip().lower()
+        if value:
+            selected_models[section_key] = value
 
     for section_key in selected_models:
         value = (request.GET.get(section_key) or "").strip().lower()
@@ -284,37 +299,78 @@ def _read_selected_models(request):
     return selected_models
 
 
+def _build_other_settings(template_state):
+    theme_color = (template_state or {}).get("theme_color") or "#d4147a"
+    return [
+        {"key": "theme_color", "label": "Theme Color", "type": "color", "value": theme_color},
+        {"key": "grade", "label": "Grade", "type": "edit"},
+        {"key": "remarks", "label": "Remarks", "type": "edit"},
+        {"key": "class_teacher_comments", "label": "Class Teacher's Comments", "type": "edit"},
+        {"key": "headteacher_comments", "label": "Headteacher's Comments", "type": "edit"},
+        {"key": "director_comments", "label": "Director's Comments", "type": "edit"},
+        {"key": "promotion_status", "label": "Promotion Status", "type": "edit"},
+        {"key": "student_position", "label": "Student's Position", "type": "edit"},
+        {"key": "score_color", "label": "Score Color", "type": "edit"},
+        {"key": "stamp", "label": "Stamp", "type": "edit"},
+        {"key": "result_title", "label": "Result Title", "type": "edit"},
+        {"key": "footer_text", "label": "Footer Text", "type": "edit"},
+        {"key": "background_image", "label": "Background Image", "type": "edit"},
+        {"key": "student_data_preferences", "label": "Student Data Preferences", "type": "edit"},
+        {"label": "Jumbotron Header Background", "type": "check", "checked": True},
+        {"label": "Autofill Attributes / Skills", "type": "check", "checked": True},
+    ]
+
+
 def template_editor_view(request, school_id):
     school, redirect_response = _require_school_access(request, school_id)
     if redirect_response:
         return redirect_response
+    selected_template = (request.GET.get("template") or DEFAULT_TEMPLATE_NAME).strip() or DEFAULT_TEMPLATE_NAME
+
+    if request.method == "POST":
+        try:
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"ok": False, "error": "Invalid JSON payload."}, status=400)
+
+        selected_template = (payload.get("template_name") or selected_template).strip() or DEFAULT_TEMPLATE_NAME
+        saved_state = save_template_editor_state(
+            school.id,
+            selected_template,
+            payload.get("state") or {},
+        )
+        return JsonResponse({"ok": True, "state": saved_state})
+
     active_tab = (request.GET.get("tab") or "layout").strip().lower()
     if active_tab not in {"layout", "other"}:
         active_tab = "layout"
     school_data = serialize_school(school)
-    selected_models = _read_selected_models(request)
+    template_options = list_template_editor_templates(school.id)
+    if selected_template not in template_options:
+        selected_template = DEFAULT_TEMPLATE_NAME
+    template_state = load_template_editor_state(school.id, selected_template)
+    selected_models = _read_selected_models(request, template_state)
+    template_state["selected_models"] = selected_models
+    section_1_saved = template_state.get("customizations", {}).get("section_1_model_3", {})
     context = {
         **_build_school_shell_context(school_data, active_key="template"),
         "removal_message": REMOVAL_MESSAGE,
         "current_year": 2026,
         "active_tab": active_tab,
-        "template_options": [
-            "Nursery (Default)",
-            "Primary (Default)",
-            "Secondary (Default)",
-        ],
-        "selected_template": "Nursery (Default)",
+        "template_options": template_options,
+        "selected_template": selected_template,
         "preview_enabled": True,
         "preview_disabled_reason": "",
         "selected_models": selected_models,
+        "template_editor_state": template_state,
         "layout_sections": build_layout_sections(selected_models),
         "preview_sections": build_preview_sections(selected_models),
         "combined_section_2_variants": build_combined_preview_variants(selected_models),
         "preview_state": build_preview_state(selected_models),
         "section_1_model_3_customize": {
             "title": "School Details 2",
-            "school_name": "ÉCOLE INTERNATIONALE HISGRACE",
-            "other_details": "(PRIMAIRE)\nRue Williams, Île Victoria, Lagos\nDevise : Sa Grâce suffit\nelgracezb@gmail.com",
+            "school_name": section_1_saved.get("school_name") or "ÉCOLE INTERNATIONALE HISGRACE",
+            "other_details": section_1_saved.get("other_details") or "(PRIMAIRE)\nRue Williams, Île Victoria, Lagos\nDevise : Sa Grâce suffit\nelgracezb@gmail.com",
         },
         "section_2_customize": {
             "title": "Student Details",
@@ -716,23 +772,6 @@ def template_editor_view(request, school_id):
             },
         },
         "section_5_customize": SECTION_5_CUSTOMIZE,
-        "other_settings": [
-            {"label": "Theme Color", "type": "color", "value": "#d4147a"},
-            {"label": "Grade", "type": "edit"},
-            {"label": "Remarks", "type": "edit"},
-            {"label": "Class Teacher's Comments", "type": "edit"},
-            {"label": "Headteacher's Comments", "type": "edit"},
-            {"label": "Director's Comments", "type": "edit"},
-            {"label": "Promotion Status", "type": "edit"},
-            {"label": "Student's Position", "type": "edit"},
-            {"label": "Score Color", "type": "edit"},
-            {"label": "Stamp", "type": "edit"},
-            {"label": "Result Title", "type": "edit"},
-            {"label": "Footer Text", "type": "edit"},
-            {"label": "Background Image", "type": "edit"},
-            {"label": "Student Data Preferences", "type": "edit"},
-            {"label": "Jumbotron Header Background", "type": "check", "checked": True},
-            {"label": "Autofill Attributes / Skills", "type": "check", "checked": True},
-        ],
+        "other_settings": _build_other_settings(template_state),
     }
     return render(request, "accounts/template_editor_disabled.html", context)

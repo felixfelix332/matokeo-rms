@@ -21,10 +21,14 @@ body {
 
 .school-entry-page {
     overflow: hidden;
+    --matokeo-desktop-scale: 0.8;
 }
 
 .entry-layout {
-    height: 100vh;
+    width: calc(100vw / var(--matokeo-desktop-scale));
+    height: calc(100vh / var(--matokeo-desktop-scale));
+    transform: scale(var(--matokeo-desktop-scale));
+    transform-origin: top left;
     display: grid;
     grid-template-columns: 176px 1fr;
     background: #ffffff;

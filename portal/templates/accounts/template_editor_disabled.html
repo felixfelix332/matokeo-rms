@@ -6,7 +6,7 @@
 {% block extra_head %}
     <style>
         .entry-content {
-            padding: 20px 26px 24px;
+            padding: 12px 18px 16px;
             overflow: hidden;
             display: grid;
             grid-template-rows: 1fr;
@@ -18,6 +18,9 @@
             z-index: 1;
             height: 100%;
             min-height: 0;
+            --template-theme-color: #d4147a;
+            --template-theme-soft: #f7dbe9;
+            --template-theme-soft-strong: #f5dbe7;
         }
 
         .template-editor-fitbox {
@@ -29,18 +32,17 @@
         }
 
         .template-editor-canvas {
-            width: 1620px;
-            height: 620px;
-            transform-origin: top left;
-            will-change: transform;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
             display: grid;
-            grid-template-rows: auto 1fr;
+            grid-template-rows: auto minmax(0, 1fr);
         }
 
         .template-editor-title {
-            margin: 0 0 14px;
+            margin: 0 0 8px;
             text-align: center;
-            font-size: 2rem;
+            font-size: 1.74rem;
             font-weight: 400;
             line-height: 1.1;
             color: #111827;
@@ -62,9 +64,9 @@
 
         .template-editor-workspace {
             display: grid;
-            grid-template-columns: 458px minmax(0, 1fr);
-            gap: 34px;
-            align-items: start;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 20px;
+            align-items: stretch;
             min-height: 0;
             height: 100%;
             padding-bottom: 0;
@@ -82,8 +84,8 @@
         .template-editor-topline {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 8px;
+            margin-bottom: 8px;
             flex: 0 0 auto;
         }
 
@@ -94,17 +96,17 @@
         }
 
         .template-editor-select {
-            width: 286px;
-            height: 36px;
-            padding: 0 12px;
+            width: 230px;
+            height: 32px;
+            padding: 0 10px;
             border: 1px solid #cfd4dc;
             background: #fff;
-            font-size: 0.86rem;
+            font-size: 0.8rem;
         }
 
         .template-editor-delete {
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border: 1px solid #cfd4dc;
             border-radius: 4px;
             background: #d1d5db;
@@ -134,15 +136,23 @@
         }
 
         .template-editor-tab {
-            min-width: 182px;
-            padding: 12px 18px;
+            box-sizing: border-box;
+            flex: 1 1 0;
+            min-width: 0;
+            height: 40px;
+            padding: 0 10px;
             border: 1px solid #8d9299;
             border-bottom: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: #f4f6f8;
             color: #4b5563;
             font-size: 0.86rem;
             text-align: center;
             font-weight: 500;
+            text-decoration: none;
+            line-height: 1;
         }
 
         .template-editor-tab + .template-editor-tab {
@@ -173,7 +183,7 @@
         }
 
         .template-editor-panel-body {
-            padding: 15px 16px 14px;
+            padding: 12px 12px 12px;
             border-top: 1px solid #8d9299;
             min-height: 0;
             overflow: hidden;
@@ -183,11 +193,22 @@
             flex: 1 1 auto;
         }
 
+        .template-editor-tab-pane {
+            min-height: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .template-editor-tab-pane[hidden] {
+            display: none;
+        }
+
         .template-editor-layout-list {
             flex: 1 1 auto;
             min-height: 0;
             overflow: hidden;
-            padding-right: 6px;
+            padding-right: 4px;
         }
 
         .template-editor-layout-scroll {
@@ -195,7 +216,8 @@
             max-height: 100%;
             min-height: 0;
             overflow-y: auto;
-            padding-right: 10px;
+            padding-right: 8px;
+            scrollbar-gutter: stable;
             scrollbar-width: thin;
             scrollbar-color: #8d9299 #f1f3f5;
         }
@@ -215,7 +237,7 @@
         }
 
         .template-editor-row {
-            margin-bottom: 13px;
+            margin-bottom: 10px;
         }
 
         .template-editor-row:last-child {
@@ -238,11 +260,11 @@
 
         .template-editor-model {
             width: 100%;
-            height: 35px;
-            padding: 0 9px;
+            height: 32px;
+            padding: 0 8px;
             border: 1px solid #cfd4dc;
             background: #fff;
-            font-size: 0.83rem;
+            font-size: 0.8rem;
         }
 
         .template-editor-model:disabled {
@@ -257,12 +279,12 @@
         }
 
         .template-editor-customize {
-            height: 35px;
-            padding: 0 14px;
+            height: 32px;
+            padding: 0 11px;
             border: none;
             background: #7664eb;
             color: #fff;
-            font-size: 0.8rem;
+            font-size: 0.76rem;
             font-weight: 500;
         }
 
@@ -370,6 +392,48 @@
             font-size: 0.96rem;
             font-weight: 500;
             cursor: pointer;
+        }
+
+        .template-editor-save-as-modal {
+            width: 536px;
+            max-width: calc(100vw - 48px);
+            padding: 66px 48px 32px;
+        }
+
+        .template-editor-save-as-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .template-editor-save-as-input {
+            width: 100%;
+            height: 35px;
+            border: 1px solid #8d9299;
+            padding: 0 6px;
+            font: inherit;
+            color: #111827;
+            background: #fff;
+        }
+
+        .template-editor-save-as-actions {
+            margin-top: 26px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .template-editor-save-as-modal .template-editor-modal-save {
+            background: #7664eb;
+        }
+
+        .template-editor-save-as-error {
+            min-height: 18px;
+            margin-top: 8px;
+            color: #b91c1c;
+            font-size: 0.78rem;
+            text-align: center;
         }
 
         .template-editor-student-grid {
@@ -969,16 +1033,17 @@
         .template-editor-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 8px;
+            margin-top: 8px;
             margin-bottom: 0;
-            padding-left: 6px;
+            padding-left: 0;
             flex: 0 0 auto;
         }
 
         .template-editor-action {
-            min-width: 188px;
-            height: 40px;
+            flex: 1 1 0;
+            min-width: 0;
+            height: 36px;
             border: none;
             display: inline-flex;
             align-items: center;
@@ -1026,6 +1091,13 @@
             font-size: 0.86rem;
         }
 
+        .template-editor-action-icon img {
+            width: 16px;
+            height: 16px;
+            display: block;
+            filter: brightness(0) invert(1);
+        }
+
         .template-editor-right {
             position: relative;
             min-width: 0;
@@ -1040,7 +1112,7 @@
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             padding-right: 6px;
             flex: 0 0 auto;
         }
@@ -1058,14 +1130,14 @@
 
         .template-editor-preview-stage {
             border: 1px solid #8d9299;
-            background: #fff;
+            background: #eef1f5;
             min-height: 0;
             flex: 1 1 auto;
             height: auto;
             position: relative;
             overflow-y: auto;
-            overflow-x: hidden;
-            padding: 10px;
+            overflow-x: auto;
+            padding: 10px 12px;
         }
 
         .template-editor-preview-stage.is-disabled {
@@ -1136,16 +1208,50 @@
         }
 
         .template-preview-sheet {
-            width: 100%;
-            min-height: 1120px;
+            --template-preview-a4-width: 1240px;
+            --template-preview-a4-height: 1754px;
+            width: min(100%, var(--template-preview-a4-width));
+            min-width: 960px;
+            min-height: var(--template-preview-a4-height);
+            margin: 0 auto;
             border: 1px solid #c4c4c4;
             background: #ffffff;
             box-shadow: 0 2px 10px rgba(15, 23, 42, 0.14);
-            padding: 16px 18px 24px;
+            padding: 24px 28px 32px;
+        }
+
+        .template-preview-report {
+            position: relative;
+            min-height: calc(var(--template-preview-a4-height) - 58px);
+        }
+
+        .template-preview-report > :not(.template-preview-background) {
+            position: relative;
+            z-index: 1;
+        }
+
+        .template-preview-background {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .template-preview-background[hidden] {
+            display: none;
+        }
+
+        .template-preview-background img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
 
         .template-preview-box {
-            border: 2px solid #d4147a;
+            border: 2px solid var(--template-theme-color);
             background: #fff;
         }
 
@@ -1165,7 +1271,7 @@
         .template-preview-header {
             display: grid;
             align-items: center;
-            background: #f7dbe9;
+            background: var(--template-theme-soft);
         }
 
         .template-preview-section--section_1 .template-preview-model--model_1.is-active .template-preview-header {
@@ -1175,7 +1281,7 @@
 
         .template-preview-section--section_1 .template-preview-model--model_2.is-active .template-preview-header {
             border-width: 0;
-            background: #f5dbe7;
+            background: var(--template-theme-soft-strong);
             grid-template-columns: 132px minmax(0, 1fr);
             padding: 10px 14px;
         }
@@ -1204,7 +1310,7 @@
             align-items: stretch;
             gap: 10px;
             padding: 0;
-            background: #f5dbe7;
+            background: var(--template-theme-soft-strong);
             overflow: hidden;
         }
 
@@ -1954,7 +2060,7 @@
 
         .template-preview-table th,
         .template-preview-table td {
-            border: 2px solid #d4147a;
+            border: 2px solid var(--template-theme-color);
             padding: 3px 4px;
             vertical-align: middle;
             word-break: break-word;
@@ -1962,7 +2068,7 @@
 
         .template-preview-table th {
             font-weight: 800;
-            background: #f7dbe9;
+            background: var(--template-theme-soft);
             text-transform: uppercase;
         }
 
@@ -2030,7 +2136,7 @@
 
         .template-preview-academic .template-preview-table th.template-preview-academic-title {
             text-align: center;
-            background: #f7dbe9;
+            background: var(--template-theme-soft);
             font-size: 0.72rem;
             letter-spacing: 0.01em;
         }
@@ -2296,21 +2402,29 @@
             gap: 10px;
         }
 
+        .template-preview-skills-side {
+            min-width: 0;
+            display: grid;
+            align-content: start;
+            gap: 6px;
+        }
+
         .template-preview-skills .template-preview-table {
-            font-size: 0.61rem;
+            font-size: 0.56rem;
         }
 
         .template-preview-skills-table col.template-preview-skill-col {
-            width: 56%;
+            width: 52%;
         }
 
         .template-preview-skills-table col.template-preview-score-col {
-            width: 11%;
+            width: 12%;
         }
 
         .template-preview-skills-table th,
         .template-preview-skills-table td {
-            line-height: 1.15;
+            line-height: 1.05;
+            padding: 1px 2px;
         }
 
         .template-preview-skills-table td:first-child,
@@ -2360,7 +2474,7 @@
         }
 
         .template-preview-comments-box {
-            border: 2px solid #d4147a;
+            border: 2px solid var(--template-theme-color);
             padding: 10px 12px 0;
         }
 
@@ -2402,6 +2516,34 @@
             text-transform: uppercase;
         }
 
+        .template-preview-promotion-status {
+            margin-top: 8px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-align: center;
+            color: #111827;
+            text-transform: uppercase;
+        }
+
+        .template-preview-stamp {
+            margin: 10px auto 0;
+            width: 120px;
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .template-preview-stamp[hidden] {
+            display: none;
+        }
+
+        .template-preview-stamp img {
+            max-width: 120px;
+            max-height: 92px;
+            object-fit: contain;
+        }
+
         .template-editor-preview-footer {
             display: flex;
             justify-content: center;
@@ -2414,7 +2556,7 @@
             flex: 1 1 auto;
             min-height: 0;
             overflow: hidden;
-            padding-right: 6px;
+            padding-right: 4px;
         }
 
         .template-editor-settings-scroll {
@@ -2422,7 +2564,8 @@
             max-height: 100%;
             min-height: 0;
             overflow-y: auto;
-            padding-right: 10px;
+            padding-right: 8px;
+            scrollbar-gutter: stable;
             scrollbar-width: thin;
             scrollbar-color: #8d9299 #f1f3f5;
         }
@@ -2444,9 +2587,9 @@
         .template-editor-setting-row {
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .template-editor-setting-row:last-child {
@@ -2460,8 +2603,8 @@
         }
 
         .template-editor-setting-edit {
-            min-width: 94px;
-            height: 29px;
+            min-width: 78px;
+            height: 28px;
             border: none;
             background: #7664eb;
             color: #fff;
@@ -2469,11 +2612,450 @@
             font-weight: 500;
         }
 
-        .template-editor-setting-color {
-            width: 88px;
-            height: 29px;
+        .template-editor-setting-color-control {
+            position: relative;
+            width: 78px;
+            height: 28px;
+            display: inline-flex;
+        }
+
+        .template-editor-setting-color-trigger {
+            width: 78px;
+            height: 28px;
             border: 2px solid #f3f4f6;
+            background: #ffffff;
+            padding: 0;
+            cursor: pointer;
             box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.14);
+        }
+
+        .template-editor-setting-color {
+            width: 78px;
+            height: 28px;
+            display: block;
+        }
+
+        .template-editor-color-picker {
+            position: absolute;
+            top: 34px;
+            right: 0;
+            z-index: 50;
+            width: 312px;
+            border: 2px solid #9ca3af;
+            background: #eeeeee;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.24);
+            padding: 5px 7px 7px;
+        }
+
+        .template-editor-color-picker.is-hidden {
+            display: none;
+        }
+
+        .template-editor-color-tabs {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            margin-bottom: 5px;
+        }
+
+        .template-editor-color-tab {
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 4px 9px 5px;
+            color: #111827;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .template-editor-color-tab.is-active {
+            border-color: #9ca3af;
+            border-bottom-color: #eeeeee;
+            background: #eeeeee;
+        }
+
+        .template-editor-color-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 26px);
+            gap: 6px;
+            max-height: 270px;
+            overflow-y: auto;
+            padding: 4px 2px 2px;
+        }
+
+        .template-editor-color-swatch {
+            width: 26px;
+            height: 26px;
+            border: 2px solid #d1d5db;
+            background: var(--swatch-color);
+            padding: 0;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+        }
+
+        .template-editor-color-swatch.is-selected {
+            outline: 3px solid #0b69c7;
+            outline-offset: 1px;
+        }
+
+        .template-editor-color-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .template-editor-color-grid::-webkit-scrollbar-track {
+            background: #e5e7eb;
+        }
+
+        .template-editor-color-grid::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 999px;
+        }
+
+        .template-editor-other-modal {
+            width: 838px;
+            max-width: calc(100vw - 120px);
+            padding: 18px 36px 22px;
+        }
+
+        .template-editor-other-modal .template-editor-modal-title {
+            margin-bottom: 8px;
+        }
+
+        .template-editor-other-table {
+            border: 1px solid #8d9299;
+            background: #fff;
+            height: 366px;
+            overflow: hidden;
+        }
+
+        .template-editor-other-row {
+            display: grid;
+            grid-template-columns: 60px 92px minmax(0, 1fr);
+            min-height: 32px;
+            border-bottom: 1px solid #b5b8bd;
+        }
+
+        .template-editor-other-row.is-header {
+            min-height: 48px;
+            font-weight: 500;
+        }
+
+        .template-editor-other-cell {
+            display: flex;
+            align-items: center;
+            border-right: 1px solid #b5b8bd;
+            font-size: 0.86rem;
+            color: #111827;
+        }
+
+        .template-editor-other-cell:last-child {
+            border-right: none;
+        }
+
+        .template-editor-other-selector {
+            justify-content: center;
+            font-size: 1.05rem;
+            color: #4b5563;
+        }
+
+        .template-editor-other-cell-input {
+            width: 100%;
+            height: 100%;
+            min-height: 31px;
+            border: none;
+            background: transparent;
+            color: #111827;
+            padding: 0 8px;
+            font: inherit;
+        }
+
+        .template-editor-other-cell-input:focus {
+            outline: 2px solid #0b69c7;
+            outline-offset: -2px;
+        }
+
+        .template-editor-other-row.is-selected [data-other-range] {
+            background: #0b69c7;
+            color: #fff;
+        }
+
+        .template-editor-other-table-space {
+            height: 140px;
+        }
+
+        .template-editor-other-footer {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 286px 1fr;
+            gap: 52px;
+            align-items: end;
+        }
+
+        .template-editor-other-title-field label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.86rem;
+            color: #111827;
+        }
+
+        .template-editor-other-title-field input {
+            width: 100%;
+            height: 35px;
+            border: 1px solid #8d9299;
+            padding: 0 8px;
+            font: inherit;
+        }
+
+        .template-editor-other-options {
+            display: grid;
+            grid-template-columns: repeat(2, max-content);
+            gap: 10px 28px;
+            justify-content: end;
+            align-items: center;
+        }
+
+        .template-editor-other-options label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.86rem;
+            white-space: nowrap;
+        }
+
+        .template-editor-other-options input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: #0b69c7;
+        }
+
+        .template-editor-other-actions {
+            margin-top: 14px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .template-editor-other-modal--compact {
+            width: 596px;
+            max-width: calc(100vw - 120px);
+            padding: 28px 80px 22px;
+        }
+
+        .template-editor-choice-list {
+            margin: 12px 0 110px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .template-editor-choice-list label {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.92rem;
+            color: #111827;
+        }
+
+        .template-editor-choice-list input {
+            width: 20px;
+            height: 20px;
+            accent-color: #0b69c7;
+        }
+
+        .template-editor-score-color-table {
+            height: 436px;
+            border: 1px solid #8d9299;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .template-editor-score-color-row {
+            display: grid;
+            grid-template-columns: 60px minmax(0, 1fr) minmax(0, 1.08fr);
+            min-height: 33px;
+            border-bottom: 1px solid #b5b8bd;
+        }
+
+        .template-editor-score-color-cell {
+            display: flex;
+            align-items: center;
+            border-right: 1px solid #d1d5db;
+            font-size: 0.86rem;
+        }
+
+        .template-editor-score-color-cell:last-child {
+            border-right: none;
+        }
+
+        .template-editor-score-color-cell input,
+        .template-editor-score-color-cell select {
+            width: 100%;
+            height: 100%;
+            min-height: 31px;
+            border: none;
+            padding: 0 8px;
+            font: inherit;
+            background: transparent;
+        }
+
+        .template-editor-image-setting {
+            display: grid;
+            gap: 18px;
+            justify-items: center;
+        }
+
+        .template-editor-image-preview {
+            width: 456px;
+            height: 280px;
+            border: 1px solid #8d9299;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .template-editor-image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .template-editor-image-actions {
+            display: flex;
+            justify-content: center;
+            gap: 74px;
+            align-items: center;
+        }
+
+        .template-editor-image-action {
+            border: none;
+            background: transparent;
+            width: 28px;
+            height: 28px;
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        .template-editor-image-action--remove {
+            color: #f05f6b;
+        }
+
+        .template-editor-background-controls {
+            width: 100%;
+            display: grid;
+            grid-template-columns: auto 168px 1fr auto 82px;
+            gap: 14px;
+            align-items: center;
+            font-size: 0.86rem;
+        }
+
+        .template-editor-background-controls input[type="range"] {
+            width: 168px;
+        }
+
+        .template-editor-background-controls input[type="number"] {
+            width: 82px;
+            height: 33px;
+            border: 1px solid #c8ccd2;
+            padding: 0 6px;
+            font: inherit;
+        }
+
+        .template-editor-text-area-large {
+            width: 100%;
+            min-height: 92px;
+            border: 1px solid #d7dbe2;
+            padding: 8px;
+            resize: none;
+            font: inherit;
+        }
+
+        .template-editor-footer-grid {
+            display: grid;
+            grid-template-columns: 110px 180px 1fr 90px;
+            gap: 20px;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .template-editor-footer-grid select,
+        .template-editor-footer-grid input {
+            height: 35px;
+            border: 1px solid #d7dbe2;
+            padding: 0 8px;
+            font: inherit;
+        }
+
+        .template-editor-student-pref-table {
+            height: 528px;
+            border: 1px solid #8d9299;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .template-editor-student-pref-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 268px 268px;
+            min-height: 33px;
+            border-bottom: 1px solid #b5b8bd;
+        }
+
+        .template-editor-student-pref-row.is-header {
+            font-weight: 500;
+        }
+
+        .template-editor-student-pref-cell {
+            display: flex;
+            align-items: center;
+            border-right: 1px solid #b5b8bd;
+            font-size: 0.82rem;
+        }
+
+        .template-editor-student-pref-cell:last-child {
+            border-right: none;
+        }
+
+        .template-editor-student-pref-cell input[type="text"] {
+            width: 100%;
+            height: 100%;
+            min-height: 31px;
+            border: none;
+            padding: 0 8px;
+            font: inherit;
+        }
+
+        .template-editor-student-pref-cell input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0 auto;
+            accent-color: #0b69c7;
+        }
+
+        .template-editor-student-pref-tools {
+            position: absolute;
+            right: 9px;
+            top: 86px;
+            display: grid;
+            gap: 38px;
+        }
+
+        .template-editor-student-pref-tool {
+            width: 26px;
+            height: 26px;
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.05rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .template-editor-student-pref-tool--add {
+            background: #63c58f;
+        }
+
+        .template-editor-student-pref-tool--remove {
+            background: #aeb4bd;
         }
 
         .template-editor-setting-check {
@@ -2501,22 +3083,31 @@
         }
 
         @media (max-width: 1200px) {
-            .template-editor-canvas {
-                width: 1280px;
-                height: 610px;
+            .template-editor-workspace {
+                grid-template-columns: 320px minmax(0, 1fr);
+                gap: 16px;
+            }
+
+            .template-editor-select {
+                width: 214px;
             }
         }
 
         @media (max-width: 760px) {
-            .template-editor-canvas {
-                width: 920px;
-                height: 820px;
+            .entry-content {
+                overflow: auto;
+            }
+
+            .template-editor-fitbox {
+                min-width: 920px;
+                min-height: 720px;
             }
         }
     </style>
 {% endblock %}
 
 {% block content %}
+                <input type="hidden" id="templateEditorCsrfToken" value="{{ csrf_token }}">
                 <section class="template-editor-shell">
                     <div class="template-editor-fitbox" id="templateEditorFitbox">
                         <div class="template-editor-canvas" id="templateEditorCanvas">
@@ -2529,80 +3120,94 @@
                                         <label for="templateSelect">Template</label>
                                         <select id="templateSelect" class="template-editor-select">
                                             {% for option in template_options %}
-                                            <option{% if option == selected_template %} selected{% endif %}>{{ option }}</option>
+                                            <option value="{{ option }}"{% if option == selected_template %} selected{% endif %}>{{ option }}</option>
                                             {% endfor %}
                                         </select>
                                         <button type="button" class="template-editor-delete" aria-label="Delete template">x</button>
-                                    </div>
+                            </div>
 
                             <div class="template-editor-tabs">
-                                <a href="?tab=layout" class="template-editor-tab{% if active_tab == 'layout' %} is-active{% else %} is-passive{% endif %}">Layout Settings</a>
-                                <a href="?tab=other" class="template-editor-tab{% if active_tab == 'other' %} is-active{% else %} is-passive{% endif %}">Other Settings</a>
+                                <a href="?tab=layout" class="template-editor-tab{% if active_tab == 'layout' %} is-active{% else %} is-passive{% endif %}" data-template-tab="layout">Layout Settings</a>
+                                <a href="?tab=other" class="template-editor-tab{% if active_tab == 'other' %} is-active{% else %} is-passive{% endif %}" data-template-tab="other">Other Settings</a>
                             </div>
 
                             <div class="template-editor-panel">
                                 <div class="template-editor-panel-body">
-                                    {% if active_tab == 'layout' %}
-                                    <div class="template-editor-layout-list">
-                                        <div class="template-editor-layout-scroll">
-                                            {% for section in layout_sections %}
-                                            <div class="template-editor-row">
-                                                <div class="template-editor-section-title">{{ section.title }}</div>
-                                                <div class="template-editor-row-controls">
-                                                <select class="template-editor-model" data-section-key="{{ section.key }}"{% if not section.has_available_model %} disabled{% endif %}>
-                                                    {% for model in section.models %}
-                                                    <option value="{{ model.key }}" data-can-customize="{% if model.can_customize %}true{% else %}false{% endif %}" data-customize-mode="{{ model.customize_mode }}"{% if model.key == section.selected_model %} selected{% endif %}{% if not model.available %} disabled{% endif %}>{{ model.name }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                                {% if section.can_customize %}
-                                                <button type="button" class="template-editor-customize" data-section-key="{{ section.key }}" data-customize-mode="{{ section.customize_mode }}"{% if not section.has_available_model %} disabled{% endif %}>Customize</button>
-                                                {% else %}
-                                                <button type="button" class="template-editor-customize{% if section.key == 'section_1' or section.key == 'section_2' or section.key == 'section_4' or section.key == 'section_6' %} is-hidden{% endif %}" data-section-key="{{ section.key }}" disabled>{% if section.has_available_model %}Ready{% else %}Locked{% endif %}</button>
-                                                {% endif %}
-                                                    {% if section.show_extra_toggle %}
-                                                    <input type="checkbox" class="template-editor-toggle"{% if section.extra_enabled %} checked{% endif %}>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    <div class="template-editor-lock-note">
-                                        Only the section models already wired into the real preview are shown here, so preview switching stays isolated while we move the renderer out of the giant template.
-                                    </div>
-                                    {% else %}
-                                    <div class="template-editor-settings-list">
-                                        <div class="template-editor-settings-scroll">
-                                            {% for setting in other_settings %}
-                                                {% if setting.type == 'check' %}
-                                                <label class="template-editor-setting-check">
-                                                    <input type="checkbox"{% if setting.checked %} checked{% endif %}>
-                                                    <span>{{ setting.label }}</span>
-                                                </label>
-                                                {% else %}
-                                                <div class="template-editor-setting-row">
-                                                    <div class="template-editor-setting-label">{{ setting.label }}</div>
-                                                    {% if setting.type == 'color' %}
-                                                    <div class="template-editor-setting-color" style="background: {{ setting.value }};"></div>
+                                    <div class="template-editor-tab-pane" data-template-tab-pane="layout"{% if active_tab != 'layout' %} hidden{% endif %}>
+                                        <div class="template-editor-layout-list">
+                                            <div class="template-editor-layout-scroll">
+                                                {% for section in layout_sections %}
+                                                <div class="template-editor-row">
+                                                    <div class="template-editor-section-title">{{ section.title }}</div>
+                                                    <div class="template-editor-row-controls">
+                                                    <select class="template-editor-model" data-section-key="{{ section.key }}"{% if not section.has_available_model %} disabled{% endif %}>
+                                                        {% for model in section.models %}
+                                                        <option value="{{ model.key }}" data-can-customize="{% if model.can_customize %}true{% else %}false{% endif %}" data-customize-mode="{{ model.customize_mode }}"{% if model.key == section.selected_model %} selected{% endif %}{% if not model.available %} disabled{% endif %}>{{ model.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                    {% if section.can_customize %}
+                                                    <button type="button" class="template-editor-customize" data-section-key="{{ section.key }}" data-customize-mode="{{ section.customize_mode }}"{% if not section.has_available_model %} disabled{% endif %}>Customize</button>
                                                     {% else %}
-                                                    <button type="button" class="template-editor-setting-edit">Edit</button>
+                                                    <button type="button" class="template-editor-customize{% if section.key == 'section_1' or section.key == 'section_2' or section.key == 'section_4' or section.key == 'section_6' %} is-hidden{% endif %}" data-section-key="{{ section.key }}" disabled>{% if section.has_available_model %}Ready{% else %}Locked{% endif %}</button>
                                                     {% endif %}
+                                                        {% if section.show_extra_toggle %}
+                                                        <input type="checkbox" class="template-editor-toggle"{% if section.extra_enabled %} checked{% endif %}>
+                                                        {% endif %}
+                                                    </div>
                                                 </div>
-                                                {% endif %}
-                                            {% endfor %}
+                                                {% endfor %}
+                                            </div>
                                         </div>
                                     </div>
-                                    {% endif %}
+                                    <div class="template-editor-tab-pane" data-template-tab-pane="other"{% if active_tab != 'other' %} hidden{% endif %}>
+                                        <div class="template-editor-settings-list">
+                                            <div class="template-editor-settings-scroll">
+                                                {% for setting in other_settings %}
+                                                    {% if setting.type == 'check' %}
+                                                    <label class="template-editor-setting-check">
+                                                        <input type="checkbox"{% if setting.checked %} checked{% endif %}>
+                                                        <span>{{ setting.label }}</span>
+                                                    </label>
+                                                    {% else %}
+                                                    <div class="template-editor-setting-row">
+                                                        <div class="template-editor-setting-label">{{ setting.label }}</div>
+                                                        {% if setting.type == 'color' %}
+                                                        <div class="template-editor-setting-color-control" data-template-theme-picker>
+                                                            <button type="button" class="template-editor-setting-color-trigger" data-template-theme-color="{{ setting.value }}" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose {{ setting.label }}">
+                                                                <span class="template-editor-setting-color" data-template-theme-swatch style="background: {{ setting.value }};"></span>
+                                                            </button>
+                                                            <div class="template-editor-color-picker is-hidden" data-template-theme-palette role="dialog" aria-label="{{ setting.label }} palette">
+                                                                <div class="template-editor-color-tabs" role="tablist" aria-label="{{ setting.label }} groups">
+                                                                    <button type="button" class="template-editor-color-tab is-active" data-theme-color-tab="palette">Palette</button>
+                                                                    <button type="button" class="template-editor-color-tab" data-theme-color-tab="web">Web</button>
+                                                                    <button type="button" class="template-editor-color-tab" data-theme-color-tab="system">System</button>
+                                                                </div>
+                                                                <div class="template-editor-color-grid" data-template-theme-grid></div>
+                                                            </div>
+                                                        </div>
+                                                        {% else %}
+                                                        <button type="button" class="template-editor-setting-edit" data-other-setting="{{ setting.key }}">Edit</button>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                                     <div class="template-editor-actions">
-                                        <a href="#" class="template-editor-action template-editor-action-save">
-                                            <span class="template-editor-action-icon">S</span>
+                                        <a href="#" class="template-editor-action template-editor-action-save" id="templateEditorSaveButton">
+                                            <span class="template-editor-action-icon">
+                                                <img src="{% static 'accounts/icons/floppy.svg' %}" alt="">
+                                            </span>
                                             <span>Save Changes</span>
                                         </a>
-                                        <a href="#" class="template-editor-action template-editor-action-new">
-                                            <span class="template-editor-action-icon">N</span>
+                                        <a href="#" class="template-editor-action template-editor-action-new" id="templateEditorSaveAsButton">
+                                            <span class="template-editor-action-icon">
+                                                <img src="{% static 'accounts/icons/file-earmark-plus.svg' %}" alt="">
+                                            </span>
                                             <span>Save as New Template</span>
                                         </a>
                                     </div>
@@ -2925,6 +3530,28 @@
                         </div>
                     </div>
                 </div>
+                <div class="template-editor-modal-backdrop" id="otherSettingModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal template-editor-other-modal" role="dialog" aria-modal="true" aria-labelledby="otherSettingModalTitle">
+                        <button type="button" class="template-editor-modal-close" id="otherSettingModalClose">x</button>
+                        <h2 class="template-editor-modal-title" id="otherSettingModalTitle"></h2>
+                        <div id="otherSettingModalBody"></div>
+                        <div class="template-editor-other-actions">
+                            <button type="button" class="template-editor-modal-save" id="otherSettingModalSave">OK</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="template-editor-modal-backdrop" id="templateSaveAsModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal template-editor-save-as-modal" role="dialog" aria-modal="true" aria-labelledby="templateSaveAsModalLabel">
+                        <button type="button" class="template-editor-modal-close" id="templateSaveAsModalClose">x</button>
+                        <label class="template-editor-save-as-label" for="templateSaveAsName" id="templateSaveAsModalLabel">Template Name</label>
+                        <input class="template-editor-save-as-input" id="templateSaveAsName" type="text" value="{{ selected_template }}">
+                        <div class="template-editor-save-as-error" id="templateSaveAsError" hidden></div>
+                        <div class="template-editor-save-as-actions">
+                            <button type="button" class="template-editor-modal-save" id="templateSaveAsModalSave">Save</button>
+                        </div>
+                    </div>
+                </div>
+                {{ template_editor_state|json_script:"templateEditorSavedState" }}
                 {{ section_3_customize.model_configs|json_script:"section3CustomizeConfig" }}
                 {{ section_3_customize.model_meta|json_script:"section3CustomizeMeta" }}
                 {{ section_5_customize|json_script:"section5CustomizeConfig" }}
@@ -2933,28 +3560,30 @@
 {% block extra_body %}
     <script>
         (function () {
+            var templateEditorRuntime = window.templateEditorRuntime = window.templateEditorRuntime || {};
+
+            function getTemplateEditorSavedState() {
+                var stateNode = document.getElementById('templateEditorSavedState');
+                if (!stateNode) {
+                    return {};
+                }
+
+                try {
+                    return JSON.parse(stateNode.textContent || '{}') || {};
+                } catch (error) {
+                    return {};
+                }
+            }
+
             function fitTemplateEditor() {
                 var fitbox = document.getElementById('templateEditorFitbox');
                 var canvas = document.getElementById('templateEditorCanvas');
-                var content = document.querySelector('.entry-content');
                 if (!fitbox || !canvas) {
                     return;
                 }
 
-                canvas.style.transform = 'scale(1)';
-                var availableWidth = fitbox.clientWidth;
-                var availableHeight = content ? content.clientHeight : fitbox.clientHeight;
-                var safetyGap = 84;
-                availableHeight = Math.max(availableHeight - safetyGap, 0);
-                var baseWidth = canvas.offsetWidth;
-                var baseHeight = canvas.offsetHeight;
-                if (!availableWidth || !availableHeight || !baseWidth || !baseHeight) {
-                    return;
-                }
-
-                var scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight, 1);
-                canvas.style.transform = 'scale(' + scale + ')';
-                fitbox.style.height = Math.floor(availableHeight) + 'px';
+                canvas.style.transform = 'none';
+                fitbox.style.height = '100%';
             }
 
             function syncTemplatePreview() {
@@ -3073,10 +3702,219 @@
 
             function bindTemplateEditorControls() {
                 var selects = document.querySelectorAll('.template-editor-model');
+                var tabs = document.querySelectorAll('[data-template-tab]');
+                var tabPanes = document.querySelectorAll('[data-template-tab-pane]');
+
+                function setActiveEditorTab(tabKey, updateUrl) {
+                    tabs.forEach(function (tab) {
+                        var isActive = tab.dataset.templateTab === tabKey;
+                        tab.classList.toggle('is-active', isActive);
+                        tab.classList.toggle('is-passive', !isActive);
+                    });
+
+                    tabPanes.forEach(function (pane) {
+                        pane.hidden = pane.dataset.templateTabPane !== tabKey;
+                    });
+
+                    if (updateUrl && window.history && window.history.replaceState) {
+                        var url = new URL(window.location.href);
+                        url.searchParams.set('tab', tabKey);
+                        window.history.replaceState({}, '', url.toString());
+                    }
+                }
+
+                tabs.forEach(function (tab) {
+                    tab.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        setActiveEditorTab(tab.dataset.templateTab || 'layout', true);
+                    });
+                });
+
                 selects.forEach(function (select) {
                     select.addEventListener('change', function () {
                         syncTemplatePreview();
                     });
+                });
+            }
+
+            var TEMPLATE_THEME_COLOR_GROUPS = {
+                palette: [
+                    '#ffffff', '#f3f4f6', '#d1d5db', '#9ca3af', '#6b7280', '#374151', '#111827', '#000000',
+                    '#fee2e2', '#fecaca', '#f87171', '#ef4444', '#dc2626', '#991b1b', '#7f1d1d', '#450a0a',
+                    '#ffedd5', '#fed7aa', '#fb923c', '#f97316', '#ea580c', '#c2410c', '#9a3412', '#431407',
+                    '#fef9c3', '#fef08a', '#fde047', '#eab308', '#ca8a04', '#a16207', '#854d0e', '#422006',
+                    '#dcfce7', '#bbf7d0', '#4ade80', '#22c55e', '#16a34a', '#15803d', '#166534', '#052e16',
+                    '#ccfbf1', '#99f6e4', '#2dd4bf', '#14b8a6', '#0d9488', '#0f766e', '#115e59', '#042f2e',
+                    '#dbeafe', '#bfdbfe', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#172554',
+                    '#fae8ff', '#f5d0fe', '#e879f9', '#d946ef', '#c026d3', '#a21caf', '#86198f', '#4a044e',
+                    '#fce7f3', '#fbcfe8', '#f472b6', '#ec4899', '#d4147a', '#be185d', '#9d174d', '#500724'
+                ],
+                web: [
+                    '#ff0000', '#ff3300', '#ff6600', '#ff9900', '#ffcc00', '#ffff00', '#ccff00', '#99ff00',
+                    '#66ff00', '#33ff00', '#00ff00', '#00ff33', '#00ff66', '#00ff99', '#00ffcc', '#00ffff',
+                    '#00ccff', '#0099ff', '#0066ff', '#0033ff', '#0000ff', '#3300ff', '#6600ff', '#9900ff',
+                    '#cc00ff', '#ff00ff', '#ff00cc', '#ff0099', '#ff0066', '#ff0033', '#800000', '#804000',
+                    '#808000', '#408000', '#008000', '#008040', '#008080', '#004080', '#000080', '#400080',
+                    '#800080', '#800040', '#c00000', '#c06000', '#c0c000', '#60c000', '#00c000', '#00c060',
+                    '#00c0c0', '#0060c0', '#0000c0', '#6000c0', '#c000c0', '#c00060', '#ff8080', '#ffc080',
+                    '#ffff80', '#c0ff80', '#80ff80', '#80ffc0', '#80ffff', '#80c0ff', '#8080ff', '#c080ff',
+                    '#ff80ff', '#ff80c0', '#663300', '#996633', '#cc9966', '#ffcc99', '#333333', '#666666',
+                    '#999999', '#cccccc', '#eeeeee', '#f8fafc', '#0f172a', '#1e293b', '#334155', '#64748b'
+                ],
+                system: [
+                    '#0b69c7', '#1565c0', '#1d4ed8', '#2563eb', '#0f96a7', '#0891b2', '#0e7490', '#164e63',
+                    '#125d2f', '#20753d', '#2b7c45', '#028b00', '#10951a', '#149c22', '#16a34a', '#22c55e',
+                    '#6a8f1b', '#84a11f', '#9fdd31', '#c7d32a', '#eab308', '#ffad08', '#f97316', '#cf6d18',
+                    '#e11d48', '#e11d8f', '#d4147a', '#be185d', '#8b0aa0', '#7664eb', '#6b58c9', '#4f46e5',
+                    '#07068c', '#0b129b', '#1f2937', '#374151', '#4b5563', '#8d9299', '#c4c4c4', '#e6c18b',
+                    '#f7dbe9', '#f5dbe7', '#eef2f6', '#f4f6f8', '#ffffff', '#000000'
+                ]
+            };
+
+            function normalizeHexColor(value) {
+                var color = String(value || '').trim();
+                if (/^#[0-9a-f]{6}$/i.test(color)) {
+                    return color.toLowerCase();
+                }
+                return '#d4147a';
+            }
+
+            function mixWithWhite(hexColor, whiteRatio) {
+                var color = normalizeHexColor(hexColor).slice(1);
+                var ratio = Math.max(0, Math.min(1, whiteRatio));
+                var red = parseInt(color.slice(0, 2), 16);
+                var green = parseInt(color.slice(2, 4), 16);
+                var blue = parseInt(color.slice(4, 6), 16);
+
+                function toHex(channel) {
+                    var mixed = Math.round(channel * (1 - ratio) + 255 * ratio);
+                    return mixed.toString(16).padStart(2, '0');
+                }
+
+                return '#' + toHex(red) + toHex(green) + toHex(blue);
+            }
+
+            function applyTemplateThemeColor(value) {
+                var themeColor = normalizeHexColor(value);
+                var themeRoot = document.querySelector('.template-editor-shell');
+                var swatches = document.querySelectorAll('[data-template-theme-swatch]');
+
+                if (themeRoot) {
+                    themeRoot.style.setProperty('--template-theme-color', themeColor);
+                    themeRoot.style.setProperty('--template-theme-soft', mixWithWhite(themeColor, 0.86));
+                    themeRoot.style.setProperty('--template-theme-soft-strong', mixWithWhite(themeColor, 0.83));
+                }
+
+                swatches.forEach(function (swatch) {
+                    swatch.style.background = themeColor;
+                });
+            }
+
+            function bindThemeColorControls() {
+                var pickers = document.querySelectorAll('[data-template-theme-picker]');
+                if (!pickers.length) {
+                    return;
+                }
+
+                function renderThemeColorGrid(picker, groupKey) {
+                    var grid = picker.querySelector('[data-template-theme-grid]');
+                    var trigger = picker.querySelector('[data-template-theme-color]');
+                    var selectedColor = normalizeHexColor(trigger ? trigger.dataset.templateThemeColor : '');
+                    var colors = TEMPLATE_THEME_COLOR_GROUPS[groupKey] || TEMPLATE_THEME_COLOR_GROUPS.palette;
+
+                    if (!grid) {
+                        return;
+                    }
+
+                    grid.innerHTML = '';
+                    colors.forEach(function (color) {
+                        var normalizedColor = normalizeHexColor(color);
+                        var swatch = document.createElement('button');
+                        swatch.type = 'button';
+                        swatch.className = 'template-editor-color-swatch';
+                        swatch.style.setProperty('--swatch-color', normalizedColor);
+                        swatch.dataset.themeColorOption = normalizedColor;
+                        swatch.setAttribute('aria-label', 'Select ' + normalizedColor);
+                        swatch.classList.toggle('is-selected', normalizedColor === selectedColor);
+                        grid.appendChild(swatch);
+                    });
+                }
+
+                function closeThemePickers(exceptPicker) {
+                    pickers.forEach(function (picker) {
+                        if (exceptPicker && picker === exceptPicker) {
+                            return;
+                        }
+                        var palette = picker.querySelector('[data-template-theme-palette]');
+                        var trigger = picker.querySelector('[data-template-theme-color]');
+                        if (palette) {
+                            palette.classList.add('is-hidden');
+                        }
+                        if (trigger) {
+                            trigger.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+                }
+
+                pickers.forEach(function (picker) {
+                    var trigger = picker.querySelector('[data-template-theme-color]');
+                    var palette = picker.querySelector('[data-template-theme-palette]');
+                    var tabs = picker.querySelectorAll('[data-theme-color-tab]');
+
+                    if (!trigger || !palette) {
+                        return;
+                    }
+
+                    trigger.dataset.templateThemeColor = normalizeHexColor(trigger.dataset.templateThemeColor);
+                    applyTemplateThemeColor(trigger.dataset.templateThemeColor);
+                    renderThemeColorGrid(picker, 'palette');
+
+                    trigger.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                        var willOpen = palette.classList.contains('is-hidden');
+                        closeThemePickers(picker);
+                        palette.classList.toggle('is-hidden', !willOpen);
+                        trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                    });
+
+                    tabs.forEach(function (tab) {
+                        tab.addEventListener('click', function (event) {
+                            event.stopPropagation();
+                            tabs.forEach(function (item) {
+                                item.classList.toggle('is-active', item === tab);
+                            });
+                            renderThemeColorGrid(picker, tab.dataset.themeColorTab || 'palette');
+                        });
+                    });
+
+                    palette.addEventListener('click', function (event) {
+                        var swatch = event.target.closest('[data-theme-color-option]');
+                        if (!swatch) {
+                            event.stopPropagation();
+                            return;
+                        }
+
+                        var selectedColor = normalizeHexColor(swatch.dataset.themeColorOption);
+                        var activeTab = picker.querySelector('[data-theme-color-tab].is-active');
+                        trigger.dataset.templateThemeColor = selectedColor;
+                        applyTemplateThemeColor(selectedColor);
+                        renderThemeColorGrid(
+                            picker,
+                            activeTab ? activeTab.dataset.themeColorTab : 'palette'
+                        );
+                        palette.classList.add('is-hidden');
+                        trigger.setAttribute('aria-expanded', 'false');
+                    });
+                });
+
+                document.addEventListener('click', function () {
+                    closeThemePickers();
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        closeThemePickers();
+                    }
                 });
             }
 
@@ -3091,6 +3929,1149 @@
                     .replace(/>/g, '&gt;')
                     .replace(/"/g, '&quot;')
                     .replace(/'/g, '&#39;');
+            }
+
+            function bindOtherSettingsControls() {
+                var backdrop = document.getElementById('otherSettingModalBackdrop');
+                var closeButton = document.getElementById('otherSettingModalClose');
+                var saveButton = document.getElementById('otherSettingModalSave');
+                var titleNode = document.getElementById('otherSettingModalTitle');
+                var bodyNode = document.getElementById('otherSettingModalBody');
+                var buttons = document.querySelectorAll('[data-other-setting]');
+                var modalNode = backdrop ? backdrop.querySelector('.template-editor-other-modal') : null;
+                var activeSettingKey = '';
+
+                var defaults = {
+                    grade: {
+                        type: 'range',
+                        title: 'Grade',
+                        valueHeader: 'Grade',
+                        footerLabel: 'Keys Title',
+                        footerValue: 'KEYS TO RATING',
+                        academicColumn: 'grade',
+                        keyMode: 'grade',
+                        rows: [
+                            { range: '100-70', value: 'A' },
+                            { range: '60-69', value: 'B' },
+                            { range: '50-59', value: 'C' },
+                            { range: '45-49', value: 'D' },
+                            { range: '40-44', value: 'E' },
+                            { range: '0-39', value: 'F' }
+                        ]
+                    },
+                    remarks: {
+                        type: 'range',
+                        title: 'Remarks',
+                        valueHeader: 'Remarks',
+                        footerLabel: 'Keys Title',
+                        footerValue: 'KEYS TO RATING',
+                        academicColumn: 'remarks',
+                        keyMode: 'remarks',
+                        rows: [
+                            { range: '100-70', value: 'EXCELLENT' },
+                            { range: '60-69', value: 'VERY GOOD' },
+                            { range: '50-59', value: 'GOOD' },
+                            { range: '45-49', value: 'FAIR' },
+                            { range: '40-44', value: 'POOR' },
+                            { range: '0-39', value: 'VERY POOR' }
+                        ]
+                    },
+                    class_teacher_comments: {
+                        type: 'comment',
+                        title: "Class Teacher's Comments",
+                        valueHeader: 'Comment',
+                        footerLabel: 'Title',
+                        footerValue: 'Class Teacher',
+                        rowKey: 'class_teacher',
+                        options: { manual: false, name: false, comment: true, sign: true, date: true },
+                        rows: [
+                            { range: '100-70', value: 'Excellent Result' },
+                            { range: '60-69', value: 'Very Good Result, Keep it up' },
+                            { range: '50-59', value: 'Good, Keep improving' },
+                            { range: '45-49', value: 'Add more efforts' },
+                            { range: '40-44', value: 'Be attentive and put more efforts' },
+                            { range: '0-39', value: 'Not too good but there is hope for you. Try again next time' }
+                        ]
+                    },
+                    headteacher_comments: {
+                        type: 'comment',
+                        title: "Headteacher's Comments",
+                        valueHeader: 'Comment',
+                        footerLabel: 'Title',
+                        footerValue: 'HeadTeacher',
+                        rowKey: 'headteacher',
+                        options: { manual: false, name: false, comment: true, sign: true, date: true },
+                        rows: [
+                            { range: '100-70', value: 'Excellent Result' },
+                            { range: '60-69', value: 'Very Good Result, Keep it up' },
+                            { range: '50-59', value: 'Good, Keep improving' },
+                            { range: '45-49', value: 'Add more efforts' },
+                            { range: '40-44', value: 'Be attentive and put more efforts' },
+                            { range: '0-39', value: 'Not too good but there is hope for you. Try again next time' }
+                        ]
+                    },
+                    director_comments: {
+                        type: 'comment',
+                        title: "Director's Comments",
+                        valueHeader: 'Comment',
+                        footerLabel: 'Title',
+                        footerValue: 'Director',
+                        rowKey: 'director',
+                        options: { manual: false, name: false, comment: false, sign: false, date: false },
+                        rows: [
+                            { range: '100-70', value: 'Excellent Result' },
+                            { range: '60-69', value: 'Very Good Result, Keep it up' },
+                            { range: '50-59', value: 'Good, Keep improving' },
+                            { range: '45-49', value: 'Add more efforts' },
+                            { range: '40-44', value: 'Be attentive and put more efforts' },
+                            { range: '0-39', value: 'Not too good but there is hope for you. Try again next time' }
+                        ]
+                    },
+                    promotion_status: {
+                        type: 'range',
+                        title: 'Promotion Status',
+                        valueHeader: 'Status',
+                        previewTarget: 'promotion_status',
+                        rows: [
+                            { range: '100-50', value: 'PROMOTED TO [promote]. CONGRATULATIONS' },
+                            { range: '49-40', value: 'PROMOTED ON TRIAL TO [promote]' },
+                            { range: '39-0', value: 'YOU ARE ADVISED TO REPEAT [repeat]' }
+                        ]
+                    },
+                    student_position: {
+                        type: 'position_visibility',
+                        title: "Students' Position",
+                        mode: 'show_all'
+                    },
+                    score_color: {
+                        type: 'score_color',
+                        title: 'Score Color',
+                        rows: [
+                            { range: '0-100', color: 'Black' }
+                        ]
+                    },
+                    stamp: {
+                        type: 'image_box',
+                        title: 'Stamp',
+                        imageData: ''
+                    },
+                    result_title: {
+                        type: 'text_box',
+                        title: 'Result Title',
+                        value: '[SESSION] [TERM] TERM REPORT SHEET'
+                    },
+                    footer_text: {
+                        type: 'footer_text',
+                        title: 'Footer Text',
+                        value: '',
+                        alignment: 'center',
+                        color: '#111827'
+                    },
+                    background_image: {
+                        type: 'background_image',
+                        title: 'Background Image',
+                        imageData: '',
+                        transparency: 50,
+                        imageSize: 100
+                    },
+                    student_data_preferences: {
+                        type: 'student_data_preferences',
+                        title: 'Student Data Preferences',
+                        fields: [
+                            { key: 'name', label: 'Name', studentReports: true, broadsheetReports: true },
+                            { key: 'date_of_birth', label: 'Date Of Birth', studentReports: true, broadsheetReports: false },
+                            { key: 'sex', label: 'Sex', studentReports: true, broadsheetReports: false },
+                            { key: 'class_name', label: 'Class', studentReports: true, broadsheetReports: false },
+                            { key: 'admission_no', label: 'Admission No.', studentReports: true, broadsheetReports: true },
+                            { key: 'address', label: 'Address', studentReports: false, broadsheetReports: false },
+                            { key: 'tel', label: 'Tel', studentReports: false, broadsheetReports: false },
+                            { key: 'email', label: 'Email', studentReports: false, broadsheetReports: false },
+                            { key: 'date_of_admission', label: 'Date of Admission', studentReports: false, broadsheetReports: false },
+                            { key: 'parent_guardian_name', label: 'Parent/Guardian Name', studentReports: false, broadsheetReports: false },
+                            { key: 'state_of_origin', label: 'StateOfOrigin', studentReports: false, broadsheetReports: false },
+                            { key: 'local_govt_area', label: 'Local Govt. Area', studentReports: false, broadsheetReports: false }
+                        ]
+                    }
+                };
+                function mergeSettingDefaults(defaultSettings, savedSettings) {
+                    var merged = deepClone(defaultSettings);
+                    Object.keys(savedSettings || {}).forEach(function (key) {
+                        if (!merged[key]) {
+                            return;
+                        }
+                        merged[key] = Object.assign({}, merged[key], savedSettings[key] || {});
+                        if (savedSettings[key] && savedSettings[key].options) {
+                            merged[key].options = Object.assign({}, defaultSettings[key].options || {}, savedSettings[key].options);
+                        }
+                        if (savedSettings[key] && Array.isArray(savedSettings[key].rows)) {
+                            merged[key].rows = deepClone(savedSettings[key].rows);
+                        }
+                        if (savedSettings[key] && Array.isArray(savedSettings[key].fields)) {
+                            merged[key].fields = deepClone(savedSettings[key].fields);
+                        }
+                    });
+                    return merged;
+                }
+
+                var savedTemplateState = getTemplateEditorSavedState();
+                var state = mergeSettingDefaults(defaults, savedTemplateState.other_settings || {});
+
+                templateEditorRuntime.getOtherSettingsState = function () {
+                    return deepClone(state);
+                };
+
+                if (!backdrop || !closeButton || !saveButton || !titleNode || !bodyNode || !buttons.length) {
+                    return;
+                }
+
+                function openOtherSettingModal(settingKey) {
+                    if (!state[settingKey]) {
+                        return;
+                    }
+
+                    activeSettingKey = settingKey;
+                    titleNode.textContent = state[settingKey].title;
+                    if (modalNode) {
+                        modalNode.classList.toggle(
+                            'template-editor-other-modal--compact',
+                            ['position_visibility', 'image_box', 'background_image'].indexOf(state[settingKey].type) !== -1
+                        );
+                    }
+                    renderOtherSettingModal(state[settingKey]);
+                    backdrop.classList.add('is-open');
+                    backdrop.setAttribute('aria-hidden', 'false');
+                }
+
+                function closeOtherSettingModal() {
+                    activeSettingKey = '';
+                    backdrop.classList.remove('is-open');
+                    backdrop.setAttribute('aria-hidden', 'true');
+                }
+
+                var scoreColorOptions = {
+                    Black: '#111827',
+                    Blue: '#0b69c7',
+                    Green: '#15803d',
+                    Red: '#dc2626',
+                    Orange: '#f97316',
+                    Purple: '#7664eb',
+                    Brown: '#7c2d12',
+                    Grey: '#6b7280'
+                };
+
+                function colorValueForName(name) {
+                    return scoreColorOptions[name] || normalizeHexColor(name || '#111827');
+                }
+
+                function renderRangeModal(setting) {
+                    return renderOtherSettingRows(setting) + (setting.footerLabel ? renderOtherSettingFooter(setting) : '');
+                }
+
+                function renderPositionVisibilityModal(setting) {
+                    var mode = setting.mode || 'show_all';
+                    return [
+                        '<div class="template-editor-choice-list">',
+                        '<label><input type="radio" name="studentPositionMode" value="show_all"' + (mode === 'show_all' ? ' checked' : '') + '>Show on All</label>',
+                        '<label><input type="radio" name="studentPositionMode" value="hide_all"' + (mode === 'hide_all' ? ' checked' : '') + '>Don\'t show on All</label>',
+                        '<label><input type="radio" name="studentPositionMode" value="custom"' + (mode === 'custom' ? ' checked' : '') + '>Show on Custom</label>',
+                        '</div>'
+                    ].join('');
+                }
+
+                function renderScoreColorModal(setting) {
+                    var rows = setting.rows || [];
+                    var options = Object.keys(scoreColorOptions).map(function (name) {
+                        return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>';
+                    }).join('');
+                    var output = [
+                        '<div class="template-editor-score-color-table">',
+                        '<div class="template-editor-score-color-row">',
+                        '<div class="template-editor-score-color-cell"></div>',
+                        '<div class="template-editor-score-color-cell"><span style="padding-left: 10px;">Score Range</span></div>',
+                        '<div class="template-editor-score-color-cell"><span style="padding-left: 10px;">Color</span></div>',
+                        '</div>'
+                    ];
+
+                    rows.forEach(function (row, index) {
+                        output.push(
+                            '<div class="template-editor-score-color-row" data-score-color-row>' +
+                            '<div class="template-editor-score-color-cell template-editor-other-selector">' + (index === 0 ? '&rsaquo;' : '') + '</div>' +
+                            '<div class="template-editor-score-color-cell"><input type="text" value="' + escapeHtml(row.range) + '" data-score-color-range></div>' +
+                            '<div class="template-editor-score-color-cell"><select data-score-color-value>' + options + '</select></div>' +
+                            '</div>'
+                        );
+                    });
+                    output.push(
+                        '<div class="template-editor-score-color-row" data-score-color-row>' +
+                        '<div class="template-editor-score-color-cell template-editor-other-selector">*</div>' +
+                        '<div class="template-editor-score-color-cell"><input type="text" value="" data-score-color-range></div>' +
+                        '<div class="template-editor-score-color-cell"><select data-score-color-value>' + options + '</select></div>' +
+                        '</div>',
+                        '</div>'
+                    );
+                    return output.join('');
+                }
+
+                function syncScoreColorSelects(setting) {
+                    bodyNode.querySelectorAll('[data-score-color-row]').forEach(function (row, index) {
+                        var select = row.querySelector('[data-score-color-value]');
+                        if (select && setting.rows && setting.rows[index]) {
+                            select.value = setting.rows[index].color || 'Black';
+                        }
+                    });
+                }
+
+                function renderImageBoxModal(setting, isBackground) {
+                    var imageSrc = setting.imageData || '';
+                    return [
+                        '<div class="template-editor-image-setting">',
+                        '<div class="template-editor-image-preview" data-image-preview-box>' + (imageSrc ? '<img src="' + escapeHtml(imageSrc) + '" alt="">' : '') + '</div>',
+                        '<input type="file" accept="image/*" data-image-file-input hidden>',
+                        '<div class="template-editor-image-actions">',
+                        '<button type="button" class="template-editor-image-action" data-image-upload aria-label="Upload image">&#8682;</button>',
+                        '<button type="button" class="template-editor-image-action template-editor-image-action--remove" data-image-remove aria-label="Remove image">&#10006;</button>',
+                        '</div>',
+                        isBackground ? '<div class="template-editor-background-controls"><span>Transparency</span><input type="range" min="0" max="100" value="' + escapeHtml(setting.transparency == null ? 50 : setting.transparency) + '" data-background-transparency><span></span><span>Image Size</span><input type="number" min="10" max="200" value="' + escapeHtml(setting.imageSize || 100) + '" data-background-size></div>' : '',
+                        '</div>'
+                    ].join('');
+                }
+
+                function renderTextBoxModal(setting) {
+                    return '<textarea class="template-editor-text-area-large" data-setting-text-value>' + escapeHtml(setting.value || '') + '</textarea>';
+                }
+
+                function renderFooterTextModal(setting) {
+                    return [
+                        '<textarea class="template-editor-text-area-large" data-setting-text-value>' + escapeHtml(setting.value || '') + '</textarea>',
+                        '<div class="template-editor-footer-grid">',
+                        '<span>Alignment</span>',
+                        '<select data-footer-alignment>',
+                        '<option value="left">Left</option>',
+                        '<option value="center">Center</option>',
+                        '<option value="right">Right</option>',
+                        '</select>',
+                        '<span style="text-align: right;">Color</span>',
+                        '<input type="text" value="' + escapeHtml(setting.color || '#111827') + '" data-footer-color>',
+                        '</div>'
+                    ].join('');
+                }
+
+                function renderStudentDataPreferencesModal(setting) {
+                    var fields = setting.fields || [];
+                    var rows = fields.map(function (field, index) {
+                        return '<div class="template-editor-student-pref-row" data-student-pref-row>' +
+                            '<div class="template-editor-student-pref-cell"><input type="text" value="' + escapeHtml(field.label) + '" data-student-pref-label></div>' +
+                            '<div class="template-editor-student-pref-cell"><input type="checkbox" data-student-pref-report' + (field.studentReports ? ' checked' : '') + '></div>' +
+                            '<div class="template-editor-student-pref-cell"><input type="checkbox" data-student-pref-broadsheet' + (field.broadsheetReports ? ' checked' : '') + '></div>' +
+                            '<input type="hidden" value="' + escapeHtml(field.key || ('custom_' + index)) + '" data-student-pref-key>' +
+                            '</div>';
+                    }).join('');
+
+                    return [
+                        '<div class="template-editor-student-pref-table">',
+                        '<div class="template-editor-student-pref-row is-header">',
+                        '<div class="template-editor-student-pref-cell"><span style="padding-left: 8px;">Field</span></div>',
+                        '<div class="template-editor-student-pref-cell"><span style="margin: 0 auto;">Visibility on Student Reports</span></div>',
+                        '<div class="template-editor-student-pref-cell"><span style="margin: 0 auto;">Visibility on Broadsheet Reports</span></div>',
+                        '</div>',
+                        rows,
+                        '</div>',
+                        '<div class="template-editor-student-pref-tools">',
+                        '<button type="button" class="template-editor-student-pref-tool template-editor-student-pref-tool--add" data-student-pref-add aria-label="Add field">+</button>',
+                        '<button type="button" class="template-editor-student-pref-tool template-editor-student-pref-tool--remove" data-student-pref-remove aria-label="Remove field">x</button>',
+                        '</div>'
+                    ].join('');
+                }
+
+                function bindImageSettingModal(setting) {
+                    var fileInput = bodyNode.querySelector('[data-image-file-input]');
+                    var uploadButton = bodyNode.querySelector('[data-image-upload]');
+                    var removeButton = bodyNode.querySelector('[data-image-remove]');
+                    var previewBox = bodyNode.querySelector('[data-image-preview-box]');
+
+                    function setPreview(imageData) {
+                        setting.imageData = imageData || '';
+                        if (previewBox) {
+                            previewBox.innerHTML = setting.imageData ? '<img src="' + escapeHtml(setting.imageData) + '" alt="">' : '';
+                        }
+                    }
+
+                    if (uploadButton && fileInput) {
+                        uploadButton.addEventListener('click', function () {
+                            fileInput.click();
+                        });
+                    }
+
+                    if (fileInput) {
+                        fileInput.addEventListener('change', function () {
+                            var file = fileInput.files && fileInput.files[0];
+                            if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+                                return;
+                            }
+                            var reader = new FileReader();
+                            reader.onload = function () {
+                                setPreview(reader.result || '');
+                            };
+                            reader.readAsDataURL(file);
+                        });
+                    }
+
+                    if (removeButton) {
+                        removeButton.addEventListener('click', function () {
+                            if (fileInput) {
+                                fileInput.value = '';
+                            }
+                            setPreview('');
+                        });
+                    }
+                }
+
+                function bindStudentPreferenceTools() {
+                    var addButton = bodyNode.querySelector('[data-student-pref-add]');
+                    var removeButton = bodyNode.querySelector('[data-student-pref-remove]');
+                    var table = bodyNode.querySelector('.template-editor-student-pref-table');
+
+                    if (addButton && table) {
+                        addButton.addEventListener('click', function () {
+                            var row = document.createElement('div');
+                            row.className = 'template-editor-student-pref-row';
+                            row.dataset.studentPrefRow = '';
+                            row.innerHTML =
+                                '<div class="template-editor-student-pref-cell"><input type="text" value="New Field" data-student-pref-label></div>' +
+                                '<div class="template-editor-student-pref-cell"><input type="checkbox" data-student-pref-report checked></div>' +
+                                '<div class="template-editor-student-pref-cell"><input type="checkbox" data-student-pref-broadsheet></div>' +
+                                '<input type="hidden" value="custom_' + Date.now() + '" data-student-pref-key>';
+                            table.appendChild(row);
+                        });
+                    }
+
+                    if (removeButton && table) {
+                        removeButton.addEventListener('click', function () {
+                            var rows = table.querySelectorAll('[data-student-pref-row]');
+                            if (rows.length) {
+                                rows[rows.length - 1].remove();
+                            }
+                        });
+                    }
+                }
+
+                function renderOtherSettingRows(setting) {
+                    var rows = setting.rows || [];
+                    var output = [
+                        '<div class="template-editor-other-table">',
+                        '<div class="template-editor-other-row is-header">',
+                        '<div class="template-editor-other-cell"></div>',
+                        '<div class="template-editor-other-cell"><span style="padding-left: 10px;">Score<br>Range</span></div>',
+                        '<div class="template-editor-other-cell"><span style="padding-left: 10px;">' + escapeHtml(setting.valueHeader) + '</span></div>',
+                        '</div>'
+                    ];
+
+                    rows.forEach(function (row, index) {
+                        output.push(
+                            '<div class="template-editor-other-row' + (index === 0 ? ' is-selected' : '') + '" data-other-range-row>' +
+                            '<div class="template-editor-other-cell template-editor-other-selector">' + (index === 0 ? '&rsaquo;' : '') + '</div>' +
+                            '<div class="template-editor-other-cell"><input class="template-editor-other-cell-input" type="text" value="' + escapeHtml(row.range) + '" data-other-range></div>' +
+                            '<div class="template-editor-other-cell"><input class="template-editor-other-cell-input" type="text" value="' + escapeHtml(row.value) + '" data-other-value></div>' +
+                            '</div>'
+                        );
+                    });
+
+                    output.push(
+                        '<div class="template-editor-other-row" data-other-range-row>' +
+                        '<div class="template-editor-other-cell template-editor-other-selector">*</div>' +
+                        '<div class="template-editor-other-cell"><input class="template-editor-other-cell-input" type="text" value="" data-other-range></div>' +
+                        '<div class="template-editor-other-cell"><input class="template-editor-other-cell-input" type="text" value="" data-other-value></div>' +
+                        '</div>',
+                        '<div class="template-editor-other-table-space"></div>',
+                        '</div>'
+                    );
+
+                    return output.join('');
+                }
+
+                function renderOtherSettingFooter(setting) {
+                    var footer = [
+                        '<div class="template-editor-other-footer">',
+                        '<div class="template-editor-other-title-field">',
+                        '<label for="otherSettingTitleInput">' + escapeHtml(setting.footerLabel) + '</label>',
+                        '<input id="otherSettingTitleInput" type="text" value="' + escapeHtml(setting.footerValue) + '" data-other-footer-value>',
+                        '</div>'
+                    ];
+
+                    if (setting.type === 'comment') {
+                        footer.push(
+                            '<div class="template-editor-other-options">',
+                            '<label><input type="checkbox" data-other-option="manual"' + (setting.options.manual ? ' checked' : '') + '>Use Manual Commenting</label>',
+                            '<span></span>',
+                            '<label><input type="checkbox" data-other-option="name"' + (setting.options.name ? ' checked' : '') + '>Name</label>',
+                            '<label><input type="checkbox" data-other-option="comment"' + (setting.options.comment ? ' checked' : '') + '>Comment</label>',
+                            '<label><input type="checkbox" data-other-option="sign"' + (setting.options.sign ? ' checked' : '') + '>Sign</label>',
+                            '<label><input type="checkbox" data-other-option="date"' + (setting.options.date ? ' checked' : '') + '>Date</label>',
+                            '</div>'
+                        );
+                    } else {
+                        footer.push('<div></div>');
+                    }
+
+                    footer.push('</div>');
+                    return footer.join('');
+                }
+
+                function renderOtherSettingModal(setting) {
+                    if (setting.type === 'position_visibility') {
+                        bodyNode.innerHTML = renderPositionVisibilityModal(setting);
+                        return;
+                    }
+
+                    if (setting.type === 'score_color') {
+                        bodyNode.innerHTML = renderScoreColorModal(setting);
+                        syncScoreColorSelects(setting);
+                        return;
+                    }
+
+                    if (setting.type === 'image_box') {
+                        bodyNode.innerHTML = renderImageBoxModal(setting, false);
+                        bindImageSettingModal(setting, false);
+                        return;
+                    }
+
+                    if (setting.type === 'background_image') {
+                        bodyNode.innerHTML = renderImageBoxModal(setting, true);
+                        bindImageSettingModal(setting, true);
+                        return;
+                    }
+
+                    if (setting.type === 'text_box') {
+                        bodyNode.innerHTML = renderTextBoxModal(setting);
+                        return;
+                    }
+
+                    if (setting.type === 'footer_text') {
+                        bodyNode.innerHTML = renderFooterTextModal(setting);
+                        var alignment = bodyNode.querySelector('[data-footer-alignment]');
+                        if (alignment) {
+                            alignment.value = setting.alignment || 'center';
+                        }
+                        return;
+                    }
+
+                    if (setting.type === 'student_data_preferences') {
+                        bodyNode.innerHTML = renderStudentDataPreferencesModal(setting);
+                        bindStudentPreferenceTools();
+                        return;
+                    }
+
+                    bodyNode.innerHTML = renderRangeModal(setting);
+                }
+
+                function collectOtherSettingModal() {
+                    var setting = state[activeSettingKey];
+                    var rows = [];
+                    if (!setting) {
+                        return null;
+                    }
+
+                    if (setting.type === 'position_visibility') {
+                        var selectedMode = bodyNode.querySelector('input[name="studentPositionMode"]:checked');
+                        setting.mode = selectedMode ? selectedMode.value : 'show_all';
+                        return setting;
+                    }
+
+                    if (setting.type === 'score_color') {
+                        bodyNode.querySelectorAll('[data-score-color-row]').forEach(function (row) {
+                            var rangeInput = row.querySelector('[data-score-color-range]');
+                            var colorInput = row.querySelector('[data-score-color-value]');
+                            var rangeValue = rangeInput ? rangeInput.value.trim() : '';
+                            var colorValue = colorInput ? colorInput.value : 'Black';
+                            if (rangeValue) {
+                                rows.push({ range: rangeValue, color: colorValue });
+                            }
+                        });
+                        setting.rows = rows;
+                        return setting;
+                    }
+
+                    if (setting.type === 'image_box') {
+                        return setting;
+                    }
+
+                    if (setting.type === 'background_image') {
+                        var transparency = bodyNode.querySelector('[data-background-transparency]');
+                        var imageSize = bodyNode.querySelector('[data-background-size]');
+                        setting.transparency = transparency ? parseInt(transparency.value || '50', 10) : 50;
+                        setting.imageSize = imageSize ? parseInt(imageSize.value || '100', 10) : 100;
+                        return setting;
+                    }
+
+                    if (setting.type === 'text_box') {
+                        var textValue = bodyNode.querySelector('[data-setting-text-value]');
+                        setting.value = textValue ? textValue.value : '';
+                        return setting;
+                    }
+
+                    if (setting.type === 'footer_text') {
+                        var footerText = bodyNode.querySelector('[data-setting-text-value]');
+                        var footerAlignment = bodyNode.querySelector('[data-footer-alignment]');
+                        var footerColor = bodyNode.querySelector('[data-footer-color]');
+                        setting.value = footerText ? footerText.value : '';
+                        setting.alignment = footerAlignment ? footerAlignment.value : 'center';
+                        setting.color = footerColor ? footerColor.value.trim() : '#111827';
+                        return setting;
+                    }
+
+                    if (setting.type === 'student_data_preferences') {
+                        var fields = [];
+                        bodyNode.querySelectorAll('[data-student-pref-row]').forEach(function (row, index) {
+                            var keyInput = row.querySelector('[data-student-pref-key]');
+                            var labelInput = row.querySelector('[data-student-pref-label]');
+                            var reportInput = row.querySelector('[data-student-pref-report]');
+                            var broadsheetInput = row.querySelector('[data-student-pref-broadsheet]');
+                            var label = labelInput ? labelInput.value.trim() : '';
+                            if (!label) {
+                                return;
+                            }
+                            fields.push({
+                                key: keyInput && keyInput.value ? keyInput.value : 'custom_' + index,
+                                label: label,
+                                studentReports: reportInput ? reportInput.checked : false,
+                                broadsheetReports: broadsheetInput ? broadsheetInput.checked : false
+                            });
+                        });
+                        setting.fields = fields;
+                        return setting;
+                    }
+
+                    bodyNode.querySelectorAll('[data-other-range-row]').forEach(function (row) {
+                        var rangeInput = row.querySelector('[data-other-range]');
+                        var valueInput = row.querySelector('[data-other-value]');
+                        var rangeValue = rangeInput ? rangeInput.value.trim() : '';
+                        var settingValue = valueInput ? valueInput.value.trim() : '';
+                        if (rangeValue || settingValue) {
+                            rows.push({ range: rangeValue, value: settingValue });
+                        }
+                    });
+
+                    setting.rows = rows;
+                    var footerInput = bodyNode.querySelector('[data-other-footer-value]');
+                    if (footerInput) {
+                        setting.footerValue = footerInput.value.trim() || setting.footerValue;
+                    }
+
+                    if (setting.type === 'comment') {
+                        bodyNode.querySelectorAll('[data-other-option]').forEach(function (option) {
+                            setting.options[option.dataset.otherOption] = option.checked;
+                        });
+                    }
+
+                    return setting;
+                }
+
+                function parseRangeBounds(rangeValue) {
+                    var match = String(rangeValue || '').match(/(-?\d+(?:\.\d+)?)\s*[-]\s*(-?\d+(?:\.\d+)?)/);
+                    if (!match) {
+                        return null;
+                    }
+
+                    var first = parseFloat(match[1]);
+                    var second = parseFloat(match[2]);
+                    if (Number.isNaN(first) || Number.isNaN(second)) {
+                        return null;
+                    }
+
+                    return {
+                        min: Math.min(first, second),
+                        max: Math.max(first, second)
+                    };
+                }
+
+                function valueForScore(score, rows) {
+                    var numericScore = parseFloat(score);
+                    if (Number.isNaN(numericScore)) {
+                        return rows.length ? rows[0].value : '';
+                    }
+
+                    for (var index = 0; index < rows.length; index += 1) {
+                        var bounds = parseRangeBounds(rows[index].range);
+                        if (bounds && numericScore >= bounds.min && numericScore <= bounds.max) {
+                            return rows[index].value;
+                        }
+                    }
+
+                    return rows.length ? rows[rows.length - 1].value : '';
+                }
+
+                function updateAcademicColumnFromRanges(columnKey, setting) {
+                    document.querySelectorAll('td[data-s3-col="' + columnKey + '"]').forEach(function (cell) {
+                        var row = cell.closest('tr');
+                        var scoreCell = row ? row.querySelector('td[data-s3-col="percentage"], td[data-s3-col="total_score"]') : null;
+                        if (!scoreCell) {
+                            return;
+                        }
+
+                        cell.textContent = valueForScore(scoreCell.textContent, setting.rows || []);
+                    });
+                }
+
+                function renderSection4Keys(setting) {
+                    var rows = (setting.rows || []).filter(function (row) {
+                        return row.range && row.value;
+                    });
+
+                    document.querySelectorAll('.template-preview-section--section_4 [data-preview-model]').forEach(function (variant) {
+                        var table = variant.querySelector('.template-preview-grade .template-preview-table');
+                        var modelKey = variant.dataset.previewModel || '';
+                        if (!table || !rows.length) {
+                            return;
+                        }
+
+                        var cells = rows.map(function (row) {
+                            if (modelKey === 'model_3') {
+                                return '<td>[' + escapeHtml(row.range) + '] = ' + escapeHtml(row.value) + '</td>';
+                            }
+                            if (modelKey === 'model_4') {
+                                return '<td>' + escapeHtml(row.range) + '<br>' + escapeHtml(row.value) + '</td>';
+                            }
+                            return '<td>' + escapeHtml(row.range) + ' (' + escapeHtml(row.value) + ')</td>';
+                        }).join('');
+
+                        table.innerHTML = '<tr><th colspan="' + rows.length + '">' + escapeHtml(setting.footerValue || 'KEYS TO RATING') + '</th></tr><tr>' + cells + '</tr>';
+                    });
+                }
+
+                function updateCommentPreview(setting) {
+                    var rowKey = setting.rowKey;
+                    var options = setting.options || {};
+                    var sampleComment = valueForScore(42, setting.rows || []);
+                    var shouldShowRow = !!(options.comment || options.sign || options.date || options.name);
+
+                    document.querySelectorAll('[data-comment-row="' + rowKey + '"]').forEach(function (row) {
+                        row.hidden = !shouldShowRow;
+
+                        row.querySelectorAll('[data-comment-title]').forEach(function (node) {
+                            node.textContent = (setting.footerValue || setting.title).replace(/'s Comments$/i, '') + "'s Comments:";
+                        });
+
+                        row.querySelectorAll('[data-comment-text]').forEach(function (node) {
+                            node.textContent = sampleComment;
+                            node.hidden = !options.comment;
+                        });
+
+                        row.querySelectorAll('[data-comment-sign-label], [data-comment-sign-line]').forEach(function (node) {
+                            node.hidden = !options.sign;
+                        });
+
+                        row.querySelectorAll('[data-comment-date-label], [data-comment-date]').forEach(function (node) {
+                            node.hidden = !options.date;
+                        });
+                    });
+                }
+
+                function updatePromotionStatusPreview(setting) {
+                    var text = valueForScore(76, setting.rows || []);
+                    document.querySelectorAll('[data-promotion-status]').forEach(function (node) {
+                        node.textContent = text;
+                        node.hidden = !text;
+                    });
+                }
+
+                function updateStudentPositionPreview(setting) {
+                    var showPosition = (setting.mode || 'show_all') !== 'hide_all';
+                    document.querySelectorAll('[data-s3-col="position_in_subject"]').forEach(function (node) {
+                        node.hidden = !showPosition;
+                    });
+                }
+
+                function updateScoreColorPreview(setting) {
+                    document.querySelectorAll('td[data-s3-col]').forEach(function (cell) {
+                        var numericScore = parseFloat(cell.textContent);
+                        if (Number.isNaN(numericScore)) {
+                            return;
+                        }
+                        var matchedColor = '';
+                        (setting.rows || []).forEach(function (row) {
+                            var bounds = parseRangeBounds(row.range);
+                            if (bounds && numericScore >= bounds.min && numericScore <= bounds.max) {
+                                matchedColor = colorValueForName(row.color || 'Black');
+                            }
+                        });
+                        cell.style.color = matchedColor || '';
+                    });
+                }
+
+                function updateStampPreview(setting) {
+                    document.querySelectorAll('[data-preview-stamp]').forEach(function (stamp) {
+                        var image = stamp.querySelector('[data-preview-stamp-image]');
+                        stamp.hidden = !setting.imageData;
+                        if (image) {
+                            image.src = setting.imageData || '';
+                        }
+                    });
+                }
+
+                function tokenizedResultText(value) {
+                    return String(value || '')
+                        .replace(/\[SESSION\]/gi, '2026')
+                        .replace(/\[TERM\]/gi, 'First');
+                }
+
+                function updateResultTitlePreview(setting) {
+                    var titleText = tokenizedResultText(setting.value || '').trim();
+                    document.querySelectorAll('[data-preview-result-title]').forEach(function (node) {
+                        node.textContent = titleText || '2026 First Term Report Sheet';
+                    });
+                }
+
+                function updateFooterTextPreview(setting) {
+                    document.querySelectorAll('[data-preview-footer-text]').forEach(function (node) {
+                        var text = tokenizedResultText(setting.value || '').trim();
+                        node.textContent = text;
+                        node.hidden = !text;
+                        node.style.textAlign = setting.alignment || 'center';
+                        node.style.color = colorValueForName(setting.color || '#111827');
+                    });
+                }
+
+                function updateBackgroundImagePreview(setting) {
+                    document.querySelectorAll('[data-preview-background]').forEach(function (container) {
+                        var image = container.querySelector('[data-preview-background-image]');
+                        var opacity = 1 - (Math.max(0, Math.min(100, parseInt(setting.transparency || 50, 10))) / 100);
+                        var size = Math.max(10, Math.min(200, parseInt(setting.imageSize || 100, 10)));
+                        container.hidden = !setting.imageData;
+                        container.style.opacity = String(opacity);
+                        if (image) {
+                            image.src = setting.imageData || '';
+                            image.style.width = size + '%';
+                        }
+                    });
+                }
+
+                function updateStudentDataPreferencePreview(setting) {
+                    (setting.fields || []).forEach(function (field) {
+                        document.querySelectorAll('[data-s2-row="' + field.key + '"]').forEach(function (row) {
+                            row.style.display = field.studentReports ? '' : 'none';
+                        });
+                    });
+                }
+
+                function applyOtherSettingPreview(settingKey, setting) {
+                    if (setting.academicColumn) {
+                        updateAcademicColumnFromRanges(setting.academicColumn, setting);
+                        if (setting.keyMode === 'grade') {
+                            renderSection4Keys(setting);
+                        }
+                        return;
+                    }
+
+                    if (setting.type === 'comment') {
+                        updateCommentPreview(setting);
+                    }
+
+                    if (setting.previewTarget === 'promotion_status') {
+                        updatePromotionStatusPreview(setting);
+                    }
+
+                    if (setting.type === 'position_visibility') {
+                        updateStudentPositionPreview(setting);
+                    }
+
+                    if (setting.type === 'score_color') {
+                        updateScoreColorPreview(setting);
+                    }
+
+                    if (setting.type === 'image_box') {
+                        updateStampPreview(setting);
+                    }
+
+                    if (setting.type === 'text_box') {
+                        updateResultTitlePreview(setting);
+                    }
+
+                    if (setting.type === 'footer_text') {
+                        updateFooterTextPreview(setting);
+                    }
+
+                    if (setting.type === 'background_image') {
+                        updateBackgroundImagePreview(setting);
+                    }
+
+                    if (setting.type === 'student_data_preferences') {
+                        updateStudentDataPreferencePreview(setting);
+                    }
+                }
+
+                Object.keys(state).forEach(function (settingKey) {
+                    applyOtherSettingPreview(settingKey, state[settingKey]);
+                });
+
+                buttons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        openOtherSettingModal(button.dataset.otherSetting || '');
+                    });
+                });
+
+                closeButton.addEventListener('click', closeOtherSettingModal);
+                backdrop.addEventListener('click', function (event) {
+                    if (event.target === backdrop) {
+                        closeOtherSettingModal();
+                    }
+                });
+                saveButton.addEventListener('click', function () {
+                    var setting = collectOtherSettingModal();
+                    if (setting && activeSettingKey) {
+                        applyOtherSettingPreview(activeSettingKey, setting);
+                    }
+                    closeOtherSettingModal();
+                });
+            }
+
+            function bindTemplateSaveControls() {
+                var saveButton = document.getElementById('templateEditorSaveButton');
+                var saveAsButton = document.getElementById('templateEditorSaveAsButton');
+                var csrfInput = document.getElementById('templateEditorCsrfToken');
+                var templateSelect = document.getElementById('templateSelect');
+                var saveAsBackdrop = document.getElementById('templateSaveAsModalBackdrop');
+                var saveAsClose = document.getElementById('templateSaveAsModalClose');
+                var saveAsInput = document.getElementById('templateSaveAsName');
+                var saveAsModalSave = document.getElementById('templateSaveAsModalSave');
+                var saveAsError = document.getElementById('templateSaveAsError');
+                if (!csrfInput) {
+                    return;
+                }
+
+                var labelNode = saveButton ? saveButton.querySelector('span:last-child') : null;
+                var defaultLabel = labelNode ? labelNode.textContent : 'Save Changes';
+                var saveAsLabelNode = saveAsButton ? saveAsButton.querySelector('span:last-child') : null;
+                var saveAsDefaultLabel = saveAsLabelNode ? saveAsLabelNode.textContent : 'Save as New Template';
+
+                function setButtonLabel(node, label) {
+                    if (node) {
+                        node.textContent = label;
+                    }
+                }
+
+                function setButtonDisabled(button, disabled) {
+                    if (!button) {
+                        return;
+                    }
+                    if (disabled) {
+                        button.setAttribute('aria-disabled', 'true');
+                    } else {
+                        button.removeAttribute('aria-disabled');
+                    }
+                }
+
+                function collectSelectedModels() {
+                    var selectedModels = {};
+                    document.querySelectorAll('.template-editor-model[data-section-key]').forEach(function (select) {
+                        selectedModels[select.dataset.sectionKey] = select.value;
+                    });
+                    return selectedModels;
+                }
+
+                function collectThemeColor() {
+                    var trigger = document.querySelector('[data-template-theme-color]');
+                    return trigger ? trigger.dataset.templateThemeColor : '#d4147a';
+                }
+
+                function getCurrentTemplateName() {
+                    return templateSelect ? templateSelect.value : 'Nursery (Default)';
+                }
+
+                function buildSavePayload(templateName) {
+                    var state = {
+                        selected_models: collectSelectedModels(),
+                        theme_color: collectThemeColor(),
+                        other_settings: templateEditorRuntime.getOtherSettingsState ? templateEditorRuntime.getOtherSettingsState() : {},
+                        customizations: templateEditorRuntime.getCustomizeState ? templateEditorRuntime.getCustomizeState() : {}
+                    };
+
+                    return {
+                        template_name: (templateName || getCurrentTemplateName()).trim() || 'Nursery (Default)',
+                        state: state
+                    };
+                }
+
+                function postTemplateState(payload) {
+                    return fetch(window.location.pathname, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfInput.value
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error('Save failed.');
+                            }
+                            return response.json();
+                        });
+                }
+
+                function syncTemplateSelection(templateName) {
+                    if (!templateSelect) {
+                        return;
+                    }
+
+                    var existingOption = Array.prototype.slice.call(templateSelect.options).find(function (option) {
+                        return option.value === templateName;
+                    });
+                    if (!existingOption) {
+                        existingOption = document.createElement('option');
+                        existingOption.value = templateName;
+                        existingOption.textContent = templateName;
+                        templateSelect.appendChild(existingOption);
+                    }
+                    templateSelect.value = templateName;
+                }
+
+                function updateTemplateUrl(templateName) {
+                    var url = new URL(window.location.href);
+                    url.searchParams.set('template', templateName);
+                    window.history.replaceState({}, '', url.toString());
+                }
+
+                function openSaveAsModal() {
+                    if (!saveAsBackdrop || !saveAsInput) {
+                        return;
+                    }
+                    if (saveAsError) {
+                        saveAsError.hidden = true;
+                        saveAsError.textContent = '';
+                    }
+                    saveAsInput.value = getCurrentTemplateName();
+                    saveAsBackdrop.classList.add('is-open');
+                    saveAsBackdrop.setAttribute('aria-hidden', 'false');
+                    setTimeout(function () {
+                        saveAsInput.focus();
+                        saveAsInput.select();
+                    }, 0);
+                }
+
+                function closeSaveAsModal() {
+                    if (!saveAsBackdrop) {
+                        return;
+                    }
+                    saveAsBackdrop.classList.remove('is-open');
+                    saveAsBackdrop.setAttribute('aria-hidden', 'true');
+                }
+
+                function showSaveAsError(message) {
+                    if (!saveAsError) {
+                        return;
+                    }
+                    saveAsError.textContent = message;
+                    saveAsError.hidden = false;
+                }
+
+                function saveTemplateAsNew() {
+                    var templateName = saveAsInput ? saveAsInput.value.trim() : '';
+                    if (!templateName) {
+                        showSaveAsError('Enter a template name.');
+                        return;
+                    }
+
+                    var payload = buildSavePayload(templateName);
+                    setButtonDisabled(saveAsButton, true);
+                    if (saveAsModalSave) {
+                        saveAsModalSave.disabled = true;
+                        saveAsModalSave.textContent = 'Saving...';
+                    }
+                    setButtonLabel(saveAsLabelNode, 'Saving...');
+
+                    postTemplateState(payload)
+                        .then(function (response) {
+                            var savedName = response.state && response.state.template_name ? response.state.template_name : payload.template_name;
+                            syncTemplateSelection(savedName);
+                            updateTemplateUrl(savedName);
+                            closeSaveAsModal();
+                            setButtonLabel(saveAsLabelNode, 'Saved');
+                            setTimeout(function () {
+                                setButtonLabel(saveAsLabelNode, saveAsDefaultLabel);
+                                setButtonDisabled(saveAsButton, false);
+                            }, 1400);
+                        })
+                        .catch(function () {
+                            showSaveAsError('Save failed. Please try again.');
+                            setButtonLabel(saveAsLabelNode, 'Save Failed');
+                            setTimeout(function () {
+                                setButtonLabel(saveAsLabelNode, saveAsDefaultLabel);
+                                setButtonDisabled(saveAsButton, false);
+                            }, 2000);
+                        })
+                        .then(function () {
+                            if (saveAsModalSave) {
+                                saveAsModalSave.disabled = false;
+                                saveAsModalSave.textContent = 'Save';
+                            }
+                        });
+                }
+
+                if (templateSelect) {
+                    templateSelect.addEventListener('change', function () {
+                        var url = new URL(window.location.href);
+                        url.searchParams.set('template', templateSelect.value);
+                        window.location.href = url.toString();
+                    });
+                }
+
+                if (saveButton) {
+                    saveButton.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        var payload = buildSavePayload();
+                        setButtonDisabled(saveButton, true);
+                        setButtonLabel(labelNode, 'Saving...');
+
+                        postTemplateState(payload)
+                        .then(function () {
+                            syncTemplateSelection(payload.template_name);
+                            updateTemplateUrl(payload.template_name);
+                            setButtonLabel(labelNode, 'Saved');
+                            setTimeout(function () {
+                                setButtonLabel(labelNode, defaultLabel);
+                                setButtonDisabled(saveButton, false);
+                            }, 1400);
+                        })
+                        .catch(function () {
+                            setButtonLabel(labelNode, 'Save Failed');
+                            setTimeout(function () {
+                                setButtonLabel(labelNode, defaultLabel);
+                                setButtonDisabled(saveButton, false);
+                            }, 2000);
+                        });
+                    });
+                }
+
+                if (saveAsButton) {
+                    saveAsButton.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        openSaveAsModal();
+                    });
+                }
+                if (saveAsClose) {
+                    saveAsClose.addEventListener('click', closeSaveAsModal);
+                }
+                if (saveAsBackdrop) {
+                    saveAsBackdrop.addEventListener('click', function (event) {
+                        if (event.target === saveAsBackdrop) {
+                            closeSaveAsModal();
+                        }
+                    });
+                }
+                if (saveAsModalSave) {
+                    saveAsModalSave.addEventListener('click', saveTemplateAsNew);
+                }
+                if (saveAsInput) {
+                    saveAsInput.addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            saveTemplateAsNew();
+                        }
+                        if (event.key === 'Escape') {
+                            closeSaveAsModal();
+                        }
+                    });
+                }
             }
 
             function bindCustomizeControls() {
@@ -3165,6 +5146,11 @@
                     class_name: true,
                     admission_no: true
                 };
+                var savedTemplateState = getTemplateEditorSavedState();
+                var savedCustomizations = savedTemplateState.customizations || {};
+                if (savedCustomizations.section_2 && savedCustomizations.section_2.visibility) {
+                    section2Visibility = Object.assign(section2Visibility, savedCustomizations.section_2.visibility);
+                }
 
                 var section3ModelConfigs = section3ConfigNode ? JSON.parse(section3ConfigNode.textContent) : {};
                 var section3ModelMeta = section3MetaNode ? JSON.parse(section3MetaNode.textContent) : {};
@@ -3179,6 +5165,80 @@
                     selectedItemIndex: 0
                 };
 
+                function normalizeSection5Metric(value, fallbackValue) {
+                    if (value === null || value === undefined || value === '') {
+                        return fallbackValue;
+                    }
+
+                    var parsed = parseInt(value, 10);
+                    return Number.isFinite(parsed) ? parsed : fallbackValue;
+                }
+
+                function normalizeSection5ModelState(modelKey, savedState) {
+                    var defaultState = deepClone((section5Config.models || {})[modelKey] || {});
+                    var state = savedState && typeof savedState === 'object' ? savedState : {};
+                    var normalized = deepClone(defaultState);
+                    var savedCategories = Array.isArray(state.categories) ? state.categories : [];
+                    var metricKey = modelKey === 'model_2' ? 'point' : 'rating';
+
+                    if (typeof state.rating_title === 'string' && state.rating_title.trim()) {
+                        normalized.rating_title = state.rating_title.trim();
+                    }
+
+                    if (Array.isArray(state.ratings)) {
+                        normalized.ratings = (defaultState.ratings || []).map(function (defaultRating, index) {
+                            var savedRating = state.ratings[index] || {};
+                            return {
+                                value: normalizeSection5Metric(savedRating.value, defaultRating.value),
+                                label: typeof savedRating.label === 'string' && savedRating.label.trim()
+                                    ? savedRating.label.trim()
+                                    : defaultRating.label
+                            };
+                        });
+                    }
+
+                    normalized.categories = (defaultState.categories || []).map(function (defaultCategory, categoryIndex) {
+                        var matchedCategory = savedCategories.find(function (category) {
+                            return category && category.key === defaultCategory.key;
+                        });
+                        var savedCategory = matchedCategory || savedCategories[categoryIndex] || {};
+                        var normalizedCategory = deepClone(defaultCategory);
+                        var savedItems = Array.isArray(savedCategory.items) ? savedCategory.items : [];
+                        var defaultItems = defaultCategory.items || [];
+                        var sourceItems = Array.isArray(savedCategory.items) ? savedItems : defaultItems;
+
+                        if (typeof savedCategory.label === 'string' && savedCategory.label.trim()) {
+                            normalizedCategory.label = savedCategory.label.trim();
+                        }
+
+                        normalizedCategory.items = [];
+                        sourceItems.forEach(function (sourceItem, itemIndex) {
+                            var defaultItem = defaultItems[itemIndex] || {};
+                            var savedItem = Array.isArray(savedCategory.items) ? (sourceItem || {}) : {};
+                            var normalizedItem = deepClone(defaultItem);
+                            var label = '';
+
+                            if (typeof savedItem.label === 'string' && savedItem.label.trim()) {
+                                label = savedItem.label.trim();
+                            } else if (typeof defaultItem.label === 'string' && defaultItem.label.trim()) {
+                                label = defaultItem.label.trim();
+                            }
+
+                            if (!label) {
+                                return;
+                            }
+
+                            normalizedItem.label = label;
+                            normalizedItem[metricKey] = normalizeSection5Metric(savedItem[metricKey], defaultItem[metricKey]);
+                            normalizedCategory.items.push(normalizedItem);
+                        });
+
+                        return normalizedCategory;
+                    });
+
+                    return normalized;
+                }
+
                 Object.keys(section3ModelConfigs).forEach(function (modelKey) {
                     var modelConfig = section3ModelConfigs[modelKey] || {};
                     section3State[modelKey] = {
@@ -3187,10 +5247,42 @@
                         columns: Object.assign({}, modelConfig.columns || {})
                     };
                 });
+                Object.keys((savedCustomizations.section_3 && savedCustomizations.section_3.models) || {}).forEach(function (modelKey) {
+                    var savedModelState = savedCustomizations.section_3.models[modelKey] || {};
+                    if (!section3State[modelKey]) {
+                        section3State[modelKey] = { visibility: {}, scores: {}, columns: {} };
+                    }
+                    section3State[modelKey].visibility = Object.assign({}, section3State[modelKey].visibility, savedModelState.visibility || {});
+                    section3State[modelKey].scores = Object.assign({}, section3State[modelKey].scores, savedModelState.scores || {});
+                    section3State[modelKey].columns = Object.assign({}, section3State[modelKey].columns, savedModelState.columns || {});
+                });
 
                 Object.keys(section5Config.models || {}).forEach(function (modelKey) {
                     section5State[modelKey] = deepClone(section5Config.models[modelKey]);
                 });
+                Object.keys((savedCustomizations.section_5 && savedCustomizations.section_5.models) || {}).forEach(function (modelKey) {
+                    if (section5State[modelKey]) {
+                        section5State[modelKey] = normalizeSection5ModelState(modelKey, savedCustomizations.section_5.models[modelKey]);
+                    }
+                });
+
+                templateEditorRuntime.getCustomizeState = function () {
+                    return {
+                        section_1_model_3: {
+                            school_name: schoolNameInput ? schoolNameInput.value : '',
+                            other_details: otherDetailsInput ? otherDetailsInput.value : ''
+                        },
+                        section_2: {
+                            visibility: Object.assign({}, section2Visibility)
+                        },
+                        section_3: {
+                            models: deepClone(section3State)
+                        },
+                        section_5: {
+                            models: deepClone(section5State)
+                        }
+                    };
+                };
 
                 if (!backdrop || !closeButton || !saveButton || !schoolNameInput || !otherDetailsInput || !section2Backdrop || !section2Close || !section2Save || !section2Reset || !section2FieldName || !section2FieldDateOfBirth || !section2FieldSex || !section2FieldClassName || !section2FieldAdmissionNo || !section3Backdrop || !section3Close || !section3Save || !section3Reset || !section3Toggles.length || !section3ScoreInputs.length || !section3ConfigNode) {
                     return;
@@ -3543,8 +5635,10 @@
 
                     return [
                         '<div class="template-preview-skills" style="row-gap: 8px;">',
+                        '<div class="template-preview-skills-side">',
                         renderSection5GroupedTable(leftCategories, ratings, 'Skill'),
-                        '<div style="display: grid; gap: 10px;">',
+                        '</div>',
+                        '<div class="template-preview-skills-side">',
                         renderSection5GroupedTable(rightCategories, ratings, 'Skill'),
                         '<table class="template-preview-table template-preview-rating-key" style="width: 100%; margin-top: 0;">',
                         '<tr><th colspan="' + Math.max(ratings.length, 1) + '">' + escapeHtml(modelState.rating_title || 'Keys To Rating') + '</th></tr>',
@@ -4265,7 +6359,10 @@
 
             fitTemplateEditor();
             bindTemplateEditorControls();
+            bindThemeColorControls();
             bindCustomizeControls();
+            bindOtherSettingsControls();
+            bindTemplateSaveControls();
             syncTemplatePreview();
             window.addEventListener('load', fitTemplateEditor);
             window.addEventListener('resize', fitTemplateEditor);
