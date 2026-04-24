@@ -1,0 +1,18 @@
+<div class="template-preview-box template-preview-header">
+    <div class="template-preview-logo">
+        {% if school.logo_url %}
+        <img src="{{ school.logo_url }}" alt="{{ school.name }} logo">
+        {% else %}
+        <div class="template-preview-logo-fallback">{{ school.abbreviation|default:'SCH' }}</div>
+        {% endif %}
+    </div>
+    <div class="template-preview-school">
+        <div class="template-preview-school-name">{{ school.name|upper }}</div>
+        <div class="template-preview-school-meta">
+            (PRIMARY)<br>
+            Williams Street, Victoria Island, Lagos<br>
+            Motto: His Grace is Sufficient<br>
+            elgracezb@gmail.com
+        </div>
+    </div>
+</div>

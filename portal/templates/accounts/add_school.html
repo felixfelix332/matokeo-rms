@@ -1,0 +1,451 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add School | MunTech Matokeo RMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'accounts/select_school.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/add_school.css' %}">
+</head>
+<body class="select-school-page add-school-page">
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'school-dialog' in message.tags %}
+            <div
+                class="hidden js-school-dialog-message"
+                data-title="Success"
+                data-message="{{ message|escape }}"
+                data-next-url="{{ success_redirect_url|escape }}"
+            ></div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="select-school-shell">
+        <div class="top-actions">
+            <button type="button" class="add-school-button" onclick="openCreateSchoolModal()">
+                <svg class="action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"/>
+                </svg>
+                Add School
+            </button>
+        </div>
+
+        {% if messages %}
+        <div class="select-school-messages">
+            {% for message in messages %}
+            {% if 'school-dialog' not in message.tags %}
+            <div class="select-school-message {% if 'error' in message.tags %}select-school-message-error{% elif 'success' in message.tags %}select-school-message-success{% else %}select-school-message-neutral{% endif %}">
+                {{ message }}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <main class="school-list-area">
+            {% if has_schools %}
+                {% for school in schools %}
+                <div class="school-row">
+                    <div class="school-row-left">
+                        <div class="school-image-box">
+                            {% if school.logo_url %}
+                            <img src="{{ school.logo_url }}" alt="" class="school-image">
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="school-row-body">
+                        <h2 class="school-name">{{ school.name|upper }}</h2>
+                        <div class="school-details">
+                            {{ school.address|default:''|linebreaksbr }}
+                        </div>
+                    </div>
+
+                    <div class="school-row-right">
+                        <div class="school-image-box school-image-box-right">
+                            {% if school.secondary_logo_url %}
+                            <img src="{{ school.secondary_logo_url }}" alt="" class="school-image">
+                            {% endif %}
+                        </div>
+                        <div class="school-tools">
+                            <button
+                                type="button"
+                                class="tool-button"
+                                onclick="openEditSchoolModal('{{ school.id }}', '{{ school.name|escapejs }}', '{{ school.address|default:''|escapejs }}', '{{ school.logo_url|escapejs }}', '{{ school.logo_path|escapejs }}', '{{ school.secondary_logo_url|escapejs }}', '{{ school.secondary_logo_path|escapejs }}')"
+                            >
+                                <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.1 2.1 0 1 1 2.97 2.97L8.25 19.04 4 20l.96-4.25 11.902-11.263Z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="tool-button" onclick="openSchoolDeleteDialog('{{ school.id }}', '{{ school.name|escapejs }}')">
+                                <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                            <a href="{% url 'accounts:school_entry' school.id %}" class="tool-button" aria-label="Enter school">
+                                <svg class="tool-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.1">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 12h12m0 0-4-4m4 4-4 4M20 5v14"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="school-empty-state"></div>
+            {% endif %}
+        </main>
+    </div>
+
+    <div id="schoolModal" class="school-modal hidden" role="dialog" aria-modal="true" aria-labelledby="school-details-title">
+        <div id="addSchoolFrame" class="add-school-frame">
+            <section id="addSchoolCard" class="school-form-card">
+                <div class="school-form-header">
+                    <h1 id="school-details-title" class="school-form-title">School Details</h1>
+                    <button type="button" class="school-form-close" onclick="closeSchoolModal()" aria-label="Close">
+                        &times;
+                    </button>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="school-form">
+                    {% csrf_token %}
+                    <input type="hidden" id="schoolAction" name="action" value="{{ school_form_action }}">
+                    <input type="hidden" id="schoolId" name="school_id" value="{{ school_form.school_id }}">
+                    <input type="hidden" id="existingLogoPath" name="existing_logo" value="{{ school_form.existing_logo }}">
+                    <input type="hidden" id="existingSecondaryLogoPath" name="existing_secondary_logo" value="{{ school_form.existing_secondary_logo }}">
+                    <input type="hidden" id="clearLogoFlag" name="clear_logo" value="0">
+                    <input type="hidden" id="clearSecondaryLogoFlag" name="clear_secondary_logo" value="0">
+
+                    <div class="media-grid">
+                        <div class="media-field">
+                            <div class="media-preview">
+                                <img id="logoPreviewImage" src="{{ school_form.logo_url }}" alt="" class="media-preview-image{% if not school_form.logo_url %} hidden{% endif %}">
+                                <div id="logoPlaceholder" class="media-preview-placeholder{% if school_form.logo_url %} hidden{% endif %}"></div>
+                            </div>
+                            <input type="file" id="logoInput" name="logo" accept="image/*" class="hidden" onchange="previewSchoolImage(this, 'logoPreviewImage', 'logoPlaceholder')">
+                            <div class="media-actions">
+                                <button type="button" class="media-button" onclick="document.getElementById('logoInput').click()" aria-label="Upload school logo">
+                                    <svg class="media-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V8m0 0-3 3m3-3 3 3M4 16.5v1.25A2.25 2.25 0 0 0 6.25 20h11.5A2.25 2.25 0 0 0 20 17.75V16.5"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="media-button media-button-danger" onclick="clearSchoolImage('logoInput', 'logoPreviewImage', 'logoPlaceholder')" aria-label="Clear school logo">
+                                    <svg class="media-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="media-field">
+                            <div class="media-preview">
+                                <img id="secondaryPreviewImage" src="{{ school_form.secondary_logo_url }}" alt="" class="media-preview-image{% if not school_form.secondary_logo_url %} hidden{% endif %}">
+                                <div id="secondaryPlaceholder" class="media-preview-placeholder{% if school_form.secondary_logo_url %} hidden{% endif %}"></div>
+                            </div>
+                            <input type="file" id="secondaryInput" name="secondary_logo" accept="image/*" class="hidden" onchange="previewSchoolImage(this, 'secondaryPreviewImage', 'secondaryPlaceholder')">
+                            <div class="media-actions">
+                                <button type="button" class="media-button" onclick="document.getElementById('secondaryInput').click()" aria-label="Upload stamp or badge">
+                                    <svg class="media-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V8m0 0-3 3m3-3 3 3M4 16.5v1.25A2.25 2.25 0 0 0 6.25 20h11.5A2.25 2.25 0 0 0 20 17.75V16.5"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="media-button media-button-danger" onclick="clearSchoolImage('secondaryInput', 'secondaryPreviewImage', 'secondaryPlaceholder')" aria-label="Clear stamp or badge">
+                                    <svg class="media-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="schoolName">School Name</label>
+                        <input id="schoolName" type="text" name="name" value="{{ school_form.name }}" required class="field-input">
+                    </div>
+
+                    <div class="field-group field-group-grow">
+                        <label class="field-label" for="schoolDetails">Other Details</label>
+                        <textarea id="schoolDetails" name="other_details" rows="4" class="field-textarea">{{ school_form.other_details }}</textarea>
+                    </div>
+
+                    <div class="submit-row">
+                        <button type="submit" id="schoolSubmitButton" class="submit-button">{{ school_submit_label }}</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <div id="schoolSuccessDialog" class="success-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="schoolSuccessTitle">
+        <div class="success-dialog-card">
+            <div class="success-dialog-header">
+                <h2 id="schoolSuccessTitle" class="success-dialog-title">Success</h2>
+                <button type="button" class="success-dialog-close" aria-label="Close" onclick="completeSchoolSuccess()">
+                    &times;
+                </button>
+            </div>
+            <div class="success-dialog-body">
+                <p id="schoolSuccessMessage" class="success-dialog-text"></p>
+            </div>
+            <div class="success-dialog-footer">
+                <button type="button" class="success-dialog-button" onclick="completeSchoolSuccess()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="schoolNotice" class="school-notice hidden" role="dialog" aria-modal="true" aria-labelledby="schoolNoticeTitle">
+        <div class="school-notice-card">
+            <div class="school-notice-header">
+                <h3 id="schoolNoticeTitle" class="school-notice-title">Notice</h3>
+                <button type="button" class="school-notice-close" onclick="closeSchoolNotice()" aria-label="Close">
+                    &times;
+                </button>
+            </div>
+            <div class="school-notice-body">
+                <p id="schoolNoticeText" class="school-notice-text"></p>
+            </div>
+            <div class="school-notice-footer">
+                <button type="button" class="school-notice-button" onclick="closeSchoolNotice()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="schoolDeleteDialog" class="success-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="schoolDeleteTitle">
+        <div class="success-dialog-card">
+            <div class="success-dialog-header">
+                <h2 id="schoolDeleteTitle" class="success-dialog-title">Delete School</h2>
+                <button type="button" class="success-dialog-close" aria-label="Close" onclick="closeSchoolDeleteDialog()">
+                    &times;
+                </button>
+            </div>
+            <div class="success-dialog-body">
+                <p id="schoolDeleteMessage" class="success-dialog-text"></p>
+            </div>
+            <div class="success-dialog-footer success-dialog-footer-split">
+                <button type="button" class="success-dialog-button" onclick="closeSchoolDeleteDialog()">Cancel</button>
+                <form method="post" id="schoolDeleteForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_school">
+                    <input type="hidden" name="school_id" id="schoolDeleteId" value="">
+                    <button type="submit" class="success-dialog-button success-dialog-button-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var schoolSuccessNextUrl = '';
+        var defaultSchoolName = '{{ default_school_name|escapejs }}';
+        var defaultSchoolDetails = '{{ default_school_details|escapejs }}';
+
+        function fitAddSchoolModal() {
+            var modal = document.getElementById('schoolModal');
+            var frame = document.getElementById('addSchoolFrame');
+            var card = document.getElementById('addSchoolCard');
+            if (!modal || modal.classList.contains('hidden') || !frame || !card) {
+                return;
+            }
+
+            frame.classList.remove('is-ready');
+            card.style.transform = 'none';
+            frame.style.width = 'auto';
+            frame.style.height = 'auto';
+
+            var naturalWidth = card.offsetWidth;
+            var naturalHeight = card.offsetHeight;
+            var maxWidth = window.innerWidth - 40;
+            var maxHeight = window.innerHeight - 40;
+            var scale = Math.min(1, maxWidth / naturalWidth, maxHeight / naturalHeight);
+
+            frame.style.width = (naturalWidth * scale) + 'px';
+            frame.style.height = (naturalHeight * scale) + 'px';
+            card.style.transform = 'scale(' + scale + ')';
+            frame.classList.add('is-ready');
+        }
+
+        function openSchoolModal() {
+            document.getElementById('schoolModal').classList.remove('hidden');
+            requestAnimationFrame(fitAddSchoolModal);
+        }
+
+        function closeSchoolModal() {
+            document.getElementById('schoolModal').classList.add('hidden');
+            document.getElementById('addSchoolFrame').classList.remove('is-ready');
+        }
+
+        function setSchoolPreview(imageId, placeholderId, imageUrl) {
+            var image = document.getElementById(imageId);
+            var placeholder = document.getElementById(placeholderId);
+            image.src = imageUrl || '';
+            if (imageUrl) {
+                image.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            } else {
+                image.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+        }
+
+        function previewSchoolImage(input, imageId, placeholderId) {
+            var image = document.getElementById(imageId);
+            var placeholder = document.getElementById(placeholderId);
+            if (!input.files || !input.files[0]) {
+                image.src = '';
+                image.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                return;
+            }
+
+            if (input.id === 'logoInput') {
+                document.getElementById('clearLogoFlag').value = '0';
+            }
+            if (input.id === 'secondaryInput') {
+                document.getElementById('clearSecondaryLogoFlag').value = '0';
+            }
+
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                image.src = event.target.result;
+                image.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                fitAddSchoolModal();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function clearSchoolImage(inputId, imageId, placeholderId) {
+            var input = document.getElementById(inputId);
+            var image = document.getElementById(imageId);
+            var placeholder = document.getElementById(placeholderId);
+            input.value = '';
+            image.src = '';
+            image.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+            if (inputId === 'logoInput') {
+                document.getElementById('clearLogoFlag').value = '1';
+            }
+            if (inputId === 'secondaryInput') {
+                document.getElementById('clearSecondaryLogoFlag').value = '1';
+            }
+            fitAddSchoolModal();
+        }
+
+        function openCreateSchoolModal() {
+            document.getElementById('schoolAction').value = 'create_school';
+            document.getElementById('schoolId').value = '';
+            document.getElementById('existingLogoPath').value = '';
+            document.getElementById('existingSecondaryLogoPath').value = '';
+            document.getElementById('clearLogoFlag').value = '0';
+            document.getElementById('clearSecondaryLogoFlag').value = '0';
+            document.getElementById('schoolName').value = defaultSchoolName;
+            document.getElementById('schoolDetails').value = defaultSchoolDetails;
+            document.getElementById('schoolSubmitButton').textContent = 'Add';
+            document.getElementById('logoInput').value = '';
+            document.getElementById('secondaryInput').value = '';
+            setSchoolPreview('logoPreviewImage', 'logoPlaceholder', '');
+            setSchoolPreview('secondaryPreviewImage', 'secondaryPlaceholder', '');
+            openSchoolModal();
+        }
+
+        function openEditSchoolModal(schoolId, schoolName, otherDetails, logoUrl, logoPath, secondaryLogoUrl, secondaryLogoPath) {
+            document.getElementById('schoolAction').value = 'edit_school';
+            document.getElementById('schoolId').value = schoolId || '';
+            document.getElementById('existingLogoPath').value = logoPath || '';
+            document.getElementById('existingSecondaryLogoPath').value = secondaryLogoPath || '';
+            document.getElementById('clearLogoFlag').value = '0';
+            document.getElementById('clearSecondaryLogoFlag').value = '0';
+            document.getElementById('schoolName').value = schoolName || '';
+            document.getElementById('schoolDetails').value = otherDetails || '';
+            document.getElementById('schoolSubmitButton').textContent = 'Save';
+            document.getElementById('logoInput').value = '';
+            document.getElementById('secondaryInput').value = '';
+            setSchoolPreview('logoPreviewImage', 'logoPlaceholder', logoUrl || '');
+            setSchoolPreview('secondaryPreviewImage', 'secondaryPlaceholder', secondaryLogoUrl || '');
+            openSchoolModal();
+        }
+
+        function openSchoolSuccessDialog(title, message, nextUrl) {
+            document.getElementById('schoolSuccessTitle').textContent = title || 'Success';
+            document.getElementById('schoolSuccessMessage').textContent = message || '';
+            schoolSuccessNextUrl = nextUrl || '';
+            document.getElementById('schoolSuccessDialog').classList.remove('hidden');
+        }
+
+        function completeSchoolSuccess() {
+            var nextUrl = schoolSuccessNextUrl;
+            document.getElementById('schoolSuccessDialog').classList.add('hidden');
+            schoolSuccessNextUrl = '';
+            if (nextUrl) {
+                window.location.href = nextUrl;
+            }
+        }
+
+        function showSchoolNotice(message) {
+            document.getElementById('schoolNoticeText').textContent = message || '';
+            document.getElementById('schoolNotice').classList.remove('hidden');
+        }
+
+        function closeSchoolNotice() {
+            document.getElementById('schoolNotice').classList.add('hidden');
+        }
+
+        function openSchoolDeleteDialog(schoolId, schoolName) {
+            document.getElementById('schoolDeleteId').value = schoolId || '';
+            document.getElementById('schoolDeleteMessage').textContent = 'Delete "' + (schoolName || 'this school') + '"?';
+            document.getElementById('schoolDeleteDialog').classList.remove('hidden');
+        }
+
+        function closeSchoolDeleteDialog() {
+            document.getElementById('schoolDeleteDialog').classList.add('hidden');
+        }
+
+        function initializeAddSchoolPage() {
+            {% if open_add_school_modal %}
+            openSchoolModal();
+            {% endif %}
+
+            var successMessage = document.querySelector('.js-school-dialog-message');
+            if (successMessage) {
+                openSchoolSuccessDialog(
+                    successMessage.dataset.title || 'Success',
+                    successMessage.dataset.message || '',
+                    successMessage.dataset.nextUrl || ''
+                );
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                requestAnimationFrame(initializeAddSchoolPage);
+            });
+        } else {
+            requestAnimationFrame(initializeAddSchoolPage);
+        }
+
+        window.addEventListener('resize', fitAddSchoolModal);
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                if (!document.getElementById('schoolSuccessDialog').classList.contains('hidden')) {
+                    completeSchoolSuccess();
+                    return;
+                }
+                if (!document.getElementById('schoolNotice').classList.contains('hidden')) {
+                    closeSchoolNotice();
+                    return;
+                }
+                if (!document.getElementById('schoolDeleteDialog').classList.contains('hidden')) {
+                    closeSchoolDeleteDialog();
+                    return;
+                }
+                if (!document.getElementById('schoolModal').classList.contains('hidden')) {
+                    closeSchoolModal();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

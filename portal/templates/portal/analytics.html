@@ -1,0 +1,177 @@
+{% extends "portal/base.html" %}
+{% load humanize %}
+
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+{% block page_subtitle %}Performance insights and data{% endblock %}
+
+{% block content %}
+<!-- Term Filter -->
+<div class="rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
+    <form method="get" class="flex flex-col gap-4 sm:flex-row sm:items-end">
+        <div class="flex-1">
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Select Term</label>
+            <select name="term" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-xs font-medium text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10">
+                {% for t in terms %}
+                <option value="{{ t.id }}" {% if term_id == t.id|stringformat:"d" %}selected{% endif %}>{{ t.session.session_name }} - Term {{ t.term }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="rounded-xl bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-700 transition active:scale-[0.98]">Analyze</button>
+    </form>
+</div>
+
+<!-- Charts -->
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+    <!-- Class Performance -->
+    <div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+        <h3 class="text-sm font-bold text-gray-900">Class Performance Comparison</h3>
+        <p class="mt-1 text-xs text-gray-500">Average scores by class</p>
+        <div class="mt-4" style="height: 300px;">
+            <canvas id="classPerformanceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Gender Performance -->
+    <div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+        <h3 class="text-sm font-bold text-gray-900">Gender Performance</h3>
+        <p class="mt-1 text-xs text-gray-500">Average score by gender</p>
+        <div class="mt-4" style="height: 300px;">
+            <canvas id="genderChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Subject Ranking -->
+<div class="mt-6 rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+    <h3 class="text-sm font-bold text-gray-900">Subject Performance Ranking</h3>
+    <p class="mt-1 text-xs text-gray-500">Subjects ranked by average score (highest to lowest)</p>
+    <div class="mt-4" style="height: 400px;">
+        <canvas id="subjectRankChart"></canvas>
+    </div>
+</div>
+
+<!-- Subject Detail Table -->
+<div class="mt-6 rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
+    <div class="border-b border-gray-100 px-5 py-4">
+        <h3 class="text-sm font-bold text-gray-900">Subject Analysis Detail</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-100 bg-gray-50/80">
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500 w-12">#</th>
+                    <th class="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">Subject</th>
+                    <th class="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-500">Average</th>
+                    <th class="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-500">Highest</th>
+                    <th class="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-500">Lowest</th>
+                    <th class="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-500">Entries</th>
+                    <th class="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-500">Performance</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for s in subject_ranking %}
+                <tr class="table-row">
+                    <td class="px-4 py-2.5 text-center text-xs font-bold text-gray-500">{{ forloop.counter }}</td>
+                    <td class="px-4 py-2.5 text-xs font-semibold text-gray-900">{{ s.name }}</td>
+                    <td class="px-4 py-2.5 text-right text-sm font-extrabold {% if s.avg >= 70 %}text-green-600{% elif s.avg >= 50 %}text-blue-600{% elif s.avg >= 40 %}text-amber-600{% else %}text-red-600{% endif %}">{{ s.avg }}%</td>
+                    <td class="px-4 py-2.5 text-right text-xs font-bold text-green-700">{{ s.highest|floatformat:0 }}</td>
+                    <td class="px-4 py-2.5 text-right text-xs font-bold text-red-600">{{ s.lowest|floatformat:0 }}</td>
+                    <td class="px-4 py-2.5 text-right text-xs text-gray-600">{{ s.count }}</td>
+                    <td class="px-4 py-2.5 text-right">
+                        <div class="ml-auto flex h-2 w-24 overflow-hidden rounded-full bg-gray-100">
+                            <div class="h-full rounded-full {% if s.avg >= 70 %}bg-green-500{% elif s.avg >= 50 %}bg-blue-500{% elif s.avg >= 40 %}bg-amber-500{% else %}bg-red-500{% endif %}" style="width: {{ s.avg }}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="px-4 py-12 text-center text-sm text-gray-400">No data for selected term.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const classPerf = {{ class_performance|safe }};
+    const genderPerf = {{ gender_performance|safe }};
+    const subjRank = {{ subject_ranking_json|safe }};
+
+    // Class Performance
+    if (classPerf.length) {
+        const colors = classPerf.map(c => c.avg >= 70 ? '#22c55e' : c.avg >= 50 ? '#3b82f6' : c.avg >= 40 ? '#f97316' : '#ef4444');
+        new Chart(document.getElementById('classPerformanceChart'), {
+            type: 'bar',
+            data: {
+                labels: classPerf.map(c => c.name),
+                datasets: [{
+                    label: 'Average Score',
+                    data: classPerf.map(c => c.avg),
+                    backgroundColor: colors.map(c => c + 'cc'),
+                    borderRadius: 8, borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 10, weight: 600 } } }
+                }
+            }
+        });
+    }
+
+    // Gender Performance
+    if (genderPerf.M || genderPerf.F) {
+        new Chart(document.getElementById('genderChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Male', 'Female'],
+                datasets: [{
+                    data: [genderPerf.M, genderPerf.F],
+                    backgroundColor: ['#3b82f6cc', '#ec4899cc'],
+                    borderWidth: 4, borderColor: '#fff',
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '60%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 20, font: { size: 13, weight: 600 }, usePointStyle: true } },
+                    tooltip: { callbacks: { label: (ctx) => ctx.label + ': ' + ctx.parsed + '%' } }
+                }
+            }
+        });
+    }
+
+    // Subject Ranking
+    if (subjRank.length) {
+        const rankColors = subjRank.map(s => s.avg >= 70 ? '#22c55ecc' : s.avg >= 50 ? '#3b82f6cc' : s.avg >= 40 ? '#f97316cc' : '#ef4444cc');
+        new Chart(document.getElementById('subjectRankChart'), {
+            type: 'bar',
+            data: {
+                labels: subjRank.map(s => s.name),
+                datasets: [{
+                    label: 'Average',
+                    data: subjRank.map(s => s.avg),
+                    backgroundColor: rankColors,
+                    borderRadius: 8, borderSkipped: false,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } },
+                    y: { grid: { display: false }, ticks: { font: { size: 11, weight: 600 } } }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

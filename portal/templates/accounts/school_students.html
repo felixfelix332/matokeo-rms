@@ -1,0 +1,271 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Students{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_students.css' %}">
+{% endblock %}
+
+{% block body_extras %}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="hidden js-student-message" data-message="{{ message|escape }}"></div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
+
+{% block content_class %} students-content{% endblock %}
+
+{% block content %}
+                <button type="button" class="students-close-button" aria-label="Close" onclick="window.location.href='{% url 'accounts:school_registration' school.id %}'">x</button>
+                <div class="students-title">Students</div>
+                <div class="students-toolbar">
+                    <form method="get" class="students-filter-bar">
+                        <label class="students-class-label" for="studentsClass">Class</label>
+                        <select id="studentsClass" name="class_id" class="students-class-select" onchange="this.form.submit()">
+                            {% for item in classes %}
+                            <option value="{{ item.id }}" {% if selected_class_id == item.id|stringformat:'s' %}selected{% endif %}>{{ item.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="search" value="{{ search }}" class="students-search-input">
+                        <button type="submit" class="students-search-button" aria-label="Search">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m20 20-4-4"></path>
+                            </svg>
+                        </button>
+                    </form>
+
+                    <div class="students-action-grid">
+                        <button type="button" class="students-action students-action-green" id="newStudentButton">New Student</button>
+                        <button type="button" class="students-action students-action-blue">Import</button>
+                        <button type="button" class="students-action students-action-red">Export</button>
+                        <button type="button" class="students-action students-action-teal">Import / Promote</button>
+                        <button type="button" class="students-action students-action-purple">Import</button>
+                        <button type="button" class="students-action students-action-cyan">Export</button>
+                    </div>
+                </div>
+
+                <div class="students-table-wrap">
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>Admission N...</th>
+                                <th>Name</th>
+                                <th>Date Of Birth</th>
+                                <th>Sex</th>
+                                <th>Address</th>
+                                <th>Tel</th>
+                                <th>Email</th>
+                                <th>Date of Adm...</th>
+                                <th>Parent/Guar...</th>
+                                <th>StateOfOrigin</th>
+                                <th>Local Govt...</th>
+                                <th>Image</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="students-group-row">
+                                <td colspan="12">{{ active_student_count }} Active Students</td>
+                            </tr>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ student.admission_number }}</td>
+                                <td>{{ student.name }}</td>
+                                <td>{{ student.date_of_birth|default:'' }}</td>
+                                <td>{{ student.sex_display }}</td>
+                                <td>{{ student.address|default:'' }}</td>
+                                <td>{{ student.tel|default:'' }}</td>
+                                <td>{{ student.email|default:'' }}</td>
+                                <td>{{ student.date_of_admission|default:'' }}</td>
+                                <td>{{ student.parent_guardian_name|default:'' }}</td>
+                                <td>{{ student.state_of_origin|default:'' }}</td>
+                                <td>{{ student.local_government|default:'' }}</td>
+                                <td>{% if student.image_url %}<img src="{{ student.image_url }}" alt="" class="students-table-image">{% endif %}</td>
+                            </tr>
+                            {% empty %}
+                            <tr class="students-empty-row">
+                                <td colspan="12"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="students-footer-row">
+                    <div class="students-count">Total No. of Students: <strong>{{ active_student_count }}</strong></div>
+                    <button type="button" class="students-export-examinees">Export as Examinees (ExamMaker)</button>
+                </div>
+{% endblock %}
+
+{% block after_layout %}
+    <div id="studentModal" class="student-modal{% if not open_student_modal %} hidden{% endif %}" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
+        <div class="student-modal-card">
+            <button type="button" class="student-modal-close" onclick="closeStudentModal()" aria-label="Close">&times;</button>
+            <div class="student-modal-title" id="studentModalTitle">Student Registration</div>
+            <form method="post" enctype="multipart/form-data" class="student-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_student">
+                <div class="student-form-left">
+                    <label class="student-label">Name</label>
+                    <input type="text" name="name" class="student-input student-name-input" value="{{ student_form.name }}">
+                    <div class="student-form-row student-form-row-three">
+                        <div>
+                            <label class="student-label">Sex</label>
+                            <select name="sex" class="student-input">
+                                <option value="MALE" {% if student_form.sex == 'MALE' %}selected{% endif %}>MALE</option>
+                                <option value="FEMALE" {% if student_form.sex == 'FEMALE' %}selected{% endif %}>FEMALE</option>
+                            </select>
+                        </div>
+                        <div class="student-class-field">
+                            <label class="student-label">Class</label>
+                            <select name="class_id" class="student-input">
+                                {% for item in classes %}
+                                <option value="{{ item.id }}" {% if student_form.class_id == item.id|stringformat:'s' %}selected{% endif %}>{{ item.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="student-form-row student-form-row-three">
+                        <div>
+                            <label class="student-label">Date Of Birth</label>
+                            <input type="text" name="date_of_birth" class="student-input" value="{{ student_form.date_of_birth }}">
+                        </div>
+                        <div>
+                            <label class="student-label">Admission No.</label>
+                            <input type="text" name="admission_number" class="student-input" value="{{ student_form.admission_number }}">
+                        </div>
+                        <div>
+                            <label class="student-label">Date of Admission</label>
+                            <input type="text" name="date_of_admission" class="student-input" value="{{ student_form.date_of_admission }}">
+                        </div>
+                    </div>
+                    <div class="student-form-row student-form-row-two">
+                        <div>
+                            <label class="student-label">Parent/Guardian Name</label>
+                            <input type="text" name="parent_name" class="student-input" value="{{ student_form.parent_name }}">
+                        </div>
+                        <div>
+                            <label class="student-label">Tel</label>
+                            <input type="text" name="tel" class="student-input" value="{{ student_form.tel }}">
+                        </div>
+                    </div>
+                    <div class="student-form-row student-form-row-two">
+                        <div>
+                            <label class="student-label">Email</label>
+                            <input type="text" name="email" class="student-input" value="{{ student_form.email }}">
+                        </div>
+                        <div>
+                            <label class="student-label">Address</label>
+                            <textarea name="address" class="student-textarea">{{ student_form.address }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="student-form-right">
+                    <div class="student-image-box">
+                        <img id="studentImagePreview" src="{{ student_form.image_url }}" alt="" class="student-image-preview{% if not student_form.image_url %} hidden{% endif %}">
+                    </div>
+                    <input type="file" name="student_image" id="studentImageInput" accept="image/*" class="hidden" onchange="previewStudentImage(this)">
+                    <div class="student-image-actions">
+                        <button type="button" class="student-image-button" onclick="document.getElementById('studentImageInput').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V8m0 0-3 3m3-3 3 3M4 16.5v1.25A2.25 2.25 0 0 0 6.25 20h11.5A2.25 2.25 0 0 0 20 17.75V16.5"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="student-image-button" onclick="document.getElementById('studentImageInput').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8h4l2-2h4l2 2h4v10H4z"/>
+                                <circle cx="12" cy="13" r="3.5"></circle>
+                            </svg>
+                        </button>
+                        <button type="button" class="student-image-button student-image-button-danger" onclick="clearStudentImage()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="student-form-footer">
+                    <button type="button" class="student-more-button" onclick="showStudentNotice('More student fields will be connected next.')">More</button>
+                    <button type="submit" class="student-register-button">Register</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="studentNoticeDialog" class="student-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="studentNoticeTitle">
+        <div class="student-dialog-card">
+            <div class="student-dialog-header">
+                <h2 id="studentNoticeTitle" class="student-dialog-title">Notice</h2>
+                <button type="button" class="student-dialog-close" onclick="closeStudentNotice()" aria-label="Close">&times;</button>
+            </div>
+            <div class="student-dialog-body">
+                <p class="student-dialog-text" id="studentNoticeText"></p>
+            </div>
+            <div class="student-dialog-footer">
+                <button type="button" class="student-dialog-button" onclick="closeStudentNotice()">OK</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script>
+        (function () {
+            var hasClasses = {% if has_classes %}true{% else %}false{% endif %};
+            var newStudentButton = document.getElementById('newStudentButton');
+            if (newStudentButton) {
+                newStudentButton.addEventListener('click', function () {
+                    if (!hasClasses) {
+                        showStudentNotice('Please register a class before adding students.');
+                        return;
+                    }
+                    openStudentModal();
+                });
+            }
+
+            Array.prototype.slice.call(document.querySelectorAll('.js-student-message')).forEach(function (message) {
+                showStudentNotice(message.getAttribute('data-message'));
+            });
+        }());
+
+        function openStudentModal() {
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+        }
+
+        function previewStudentImage(input) {
+            var preview = document.getElementById('studentImagePreview');
+            if (!preview || !input.files || !input.files[0]) {
+                return;
+            }
+            preview.src = URL.createObjectURL(input.files[0]);
+            preview.classList.remove('hidden');
+        }
+
+        function clearStudentImage() {
+            var input = document.getElementById('studentImageInput');
+            var preview = document.getElementById('studentImagePreview');
+            if (input) {
+                input.value = '';
+            }
+            if (preview) {
+                preview.src = '';
+                preview.classList.add('hidden');
+            }
+        }
+
+        function showStudentNotice(message) {
+            document.getElementById('studentNoticeText').textContent = message;
+            document.getElementById('studentNoticeDialog').classList.remove('hidden');
+        }
+
+        function closeStudentNotice() {
+            document.getElementById('studentNoticeDialog').classList.add('hidden');
+        }
+    </script>
+{% endblock %}

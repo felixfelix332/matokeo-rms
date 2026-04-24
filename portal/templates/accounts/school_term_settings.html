@@ -1,0 +1,74 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Terminal Settings{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_term_settings.css' %}">
+{% endblock %}
+
+{% block content_class %} term-settings-content{% endblock %}
+
+{% block content %}
+    <button type="button" class="term-settings-close" onclick="window.location.href='{% url 'accounts:school_registration' school.id %}'" aria-label="Close">x</button>
+    <div class="term-settings-title">Terminal Settings</div>
+    {% if messages %}
+    <div class="term-settings-messages">
+        {% for message in messages %}
+        <div class="term-settings-message {% if 'error' in message.tags %}is-error{% elif 'success' in message.tags %}is-success{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post" class="term-settings-form">
+        {% csrf_token %}
+        <div class="term-settings-grid">
+            <div>
+                <label class="term-settings-label">Session</label>
+                <select name="session_id" class="term-settings-input" onchange="window.location.href='?session_id=' + this.value">
+                    <option value="">-- New Session --</option>
+                    {% for item in sessions %}
+                    <option value="{{ item.id }}" {% if selected_session_id == item.id|stringformat:'s' %}selected{% endif %}>{{ item.session_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="term-settings-label">New Session Name</label>
+                <input type="text" name="session_name" class="term-settings-input" value="{{ term_form.session_name }}">
+            </div>
+            <div>
+                <label class="term-settings-label">Term</label>
+                <select name="term_id" class="term-settings-input" onchange="window.location.href='?session_id={{ selected_session_id }}&term_id=' + this.value">
+                    <option value="">-- New Term --</option>
+                    {% for item in terms %}
+                    <option value="{{ item.id }}" {% if selected_term_id == item.id|stringformat:'s' %}selected{% endif %}>{{ item.term_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="term-settings-label">Term Name</label>
+                <input type="text" name="term_name" class="term-settings-input" value="{{ term_form.term_name }}">
+            </div>
+            <div>
+                <label class="term-settings-label">Term Begins</label>
+                <input type="text" name="start_date" class="term-settings-input" value="{{ term_form.start_date }}">
+            </div>
+            <div>
+                <label class="term-settings-label">Term Ends</label>
+                <input type="text" name="end_date" class="term-settings-input" value="{{ term_form.end_date }}">
+            </div>
+            <div>
+                <label class="term-settings-label">No of Times School Opens</label>
+                <input type="text" name="times_school_open" class="term-settings-input" value="{{ term_form.times_school_open }}">
+            </div>
+            <div>
+                <label class="term-settings-label">Terminal Duration</label>
+                <input type="text" name="term_duration" class="term-settings-input" value="{{ term_form.term_duration }}">
+            </div>
+            <div class="term-settings-grid-wide">
+                <label class="term-settings-label">Next Term Begins</label>
+                <input type="text" name="next_term_begins" class="term-settings-input" value="{{ term_form.next_term_begins }}">
+            </div>
+        </div>
+        <button type="submit" class="term-settings-save">Save Changes</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "portal/teacher/base.html" %}
+
+{% block title %}School Details{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-xl font-extrabold text-gray-900">School Details</h2>
+    <p class="mt-1 text-sm text-gray-500">Manage school information, branding, and leadership profiles</p>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-2">
+
+    <!-- School Information -->
+    <div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+        <h3 class="text-sm font-bold text-gray-900 mb-4">School Information</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="save_school">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">School Name</label>
+                    <input type="text" name="name" value="{{ school.name|default:'' }}" required
+                        class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Abbreviation</label>
+                    <input type="text" name="abbreviation" value="{{ school.abbreviation|default:'' }}"
+                        class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Address</label>
+                    <textarea name="address" rows="2" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium resize-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">{{ school.address|default:'' }}</textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Phone</label>
+                        <input type="tel" name="phone" value="{{ school.phone|default:'' }}"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Email</label>
+                        <input type="email" name="email" value="{{ school.email|default:'' }}"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Website</label>
+                    <input type="text" name="website" value="{{ school.website|default:'' }}"
+                        class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">
+                </div>
+            </div>
+            <button type="submit" class="mt-5 w-full rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700 transition">Save School Info</button>
+        </form>
+    </div>
+
+    <!-- Branding -->
+    <div class="space-y-6">
+        <div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+            <h3 class="text-sm font-bold text-gray-900 mb-4">Branding</h3>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_branding">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Motto / Tagline</label>
+                        <input type="text" name="tagline" value="{{ branding.tagline|default:'' }}" placeholder="e.g. Education is Treasure"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Primary Color</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" name="primary_color" value="{{ branding.primary_color|default:'#1f894d' }}" class="h-10 w-14 rounded-lg border border-gray-200 cursor-pointer">
+                            <span class="text-xs font-mono text-gray-500">{{ branding.primary_color|default:'#1f894d' }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">School Logo</label>
+                        {% if branding.logo %}
+                        <div class="mb-2 flex items-center gap-3 rounded-xl bg-gray-50 border border-gray-100 p-3">
+                            <img src="{{ branding.logo_url }}" alt="Logo" class="h-12 w-12 rounded-lg object-contain bg-white">
+                            <span class="text-[10px] text-gray-500">Current logo</span>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="logo" accept="image/*"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-emerald-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Stamp / Seal</label>
+                        <input type="file" name="stamp" accept="image/*"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-emerald-700">
+                    </div>
+                </div>
+                <button type="submit" class="mt-5 w-full rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700 transition">Save Branding</button>
+            </form>
+        </div>
+
+        <!-- HeadTeacher & Director -->
+        <div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+            <h3 class="text-sm font-bold text-gray-900 mb-4">Leadership</h3>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_leadership">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">HeadTeacher Name</label>
+                        <input type="text" name="headteacher_name" value="{{ branding.headteacher_name|default:school.principal_name|default:'' }}"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Director Name</label>
+                        <input type="text" name="director_name" value="{{ branding.director_name|default:'' }}"
+                            class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="mt-5 w-full rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white hover:bg-emerald-700 transition">Save Leadership</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

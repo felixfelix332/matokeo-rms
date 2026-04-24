@@ -1,0 +1,122 @@
+{% extends "portal/teacher/base.html" %}
+
+{% block title %}Broadsheet (Subject View){% endblock %}
+
+{% block extra_head %}
+<style>
+    .bs-table { font-size: 10px; }
+    .bs-table th { position: sticky; top: 0; z-index: 10; background: #f8fafc; }
+    .bs-table td { white-space: nowrap; }
+    @media print { .bs-table { font-size: 8px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h2 class="text-xl font-extrabold text-gray-900">Broadsheet (Subject View)</h2>
+        <p class="mt-1 text-sm text-gray-500">Subject-level performance breakdown per student</p>
+    </div>
+    {% if rows %}
+    <button onclick="window.print()" class="no-print rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-gray-800">Print</button>
+    {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="rounded-2xl bg-white p-5 shadow-sm border border-gray-100 mb-6 no-print">
+    <form method="get" class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Class</label>
+            <select name="class" onchange="this.form.submit()" class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium">
+                <option value="">Select class...</option>
+                {% for c in assigned_classes %}
+                <option value="{{ c.schoolclass_id }}" {% if selected_class == c.schoolclass_id|stringformat:"d" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Subject</label>
+            <select name="subject" onchange="this.form.submit()" class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium">
+                <option value="">Select subject...</option>
+                {% for s in subjects %}
+                <option value="{{ s.id }}" {% if selected_subject == s.id|stringformat:"d" %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Term</label>
+            <select name="term" onchange="this.form.submit()" class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium">
+                <option value="">Select term...</option>
+                {% for t in terms %}
+                <option value="{{ t.id }}" {% if selected_term == t.id|stringformat:"d" %}selected{% endif %}>
+                    {{ t.session.session_name }} &mdash; Term {{ t.term }} {% if t.is_active %}(Active){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if rows %}
+<div class="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
+    {% if subject_name %}
+    <div class="px-5 py-3 border-b border-gray-100 text-center">
+        <h3 class="text-sm font-extrabold text-gray-900">{{ subject_name }} — {{ class_name }}</h3>
+    </div>
+    {% endif %}
+    <div class="overflow-x-auto">
+        <table class="bs-table w-full">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="px-3 py-2.5 text-center text-[9px] font-bold uppercase tracking-wider text-gray-500 w-10">Pos</th>
+                    <th class="px-3 py-2.5 text-left text-[9px] font-bold uppercase tracking-wider text-gray-500">Adm No</th>
+                    <th class="px-3 py-2.5 text-left text-[9px] font-bold uppercase tracking-wider text-gray-500 min-w-[140px]">Name</th>
+                    {% for comp in components %}
+                    <th class="px-2 py-2.5 text-center text-[8px] font-bold uppercase tracking-wider text-gray-500">{{ comp.name }}</th>
+                    {% endfor %}
+                    <th class="px-3 py-2.5 text-center text-[9px] font-bold uppercase tracking-wider text-gray-500">Total</th>
+                    <th class="px-3 py-2.5 text-center text-[9px] font-bold uppercase tracking-wider text-gray-500">Grade</th>
+                    <th class="px-3 py-2.5 text-center text-[9px] font-bold uppercase tracking-wider text-gray-500">Points</th>
+                    <th class="px-3 py-2.5 text-left text-[9px] font-bold uppercase tracking-wider text-gray-500">Remark</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for r in rows %}
+                <tr class="table-row {% if r.position <= 3 %}bg-emerald-50/30{% endif %}">
+                    <td class="px-3 py-2 text-center">
+                        <span class="inline-flex h-5 w-5 items-center justify-center rounded text-[9px] font-extrabold {% if r.position == 1 %}bg-amber-100 text-amber-700{% elif r.position <= 3 %}bg-gray-100 text-gray-700{% else %}text-gray-500{% endif %}">{{ r.position }}</span>
+                    </td>
+                    <td class="px-3 py-2 text-[10px] font-mono text-gray-500">{{ r.adm }}</td>
+                    <td class="px-3 py-2 text-[10px] font-semibold text-gray-900">{{ r.name }}</td>
+                    {% for score in r.comp_scores %}
+                    <td class="px-2 py-2 text-center text-[10px] {% if score != None %}{% if score >= 70 %}text-emerald-700 font-bold{% elif score >= 50 %}text-blue-700{% elif score >= 40 %}text-amber-700{% else %}text-red-700{% endif %}{% else %}text-gray-300{% endif %}">
+                        {% if score != None %}{{ score|floatformat:0 }}{% else %}-{% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="px-3 py-2 text-center text-[10px] font-extrabold text-gray-900">{{ r.total|floatformat:0 }}</td>
+                    <td class="px-3 py-2 text-center">
+                        <span class="badge badge-{{ r.grade|lower }}">{{ r.grade }}</span>
+                    </td>
+                    <td class="px-3 py-2 text-center text-[10px] font-bold text-gray-700">{{ r.points }}</td>
+                    <td class="px-3 py-2 text-[9px] text-gray-500">{{ r.remark }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Summary -->
+    <div class="border-t border-gray-200 bg-gray-50 px-5 py-3">
+        <div class="flex flex-wrap gap-6 text-[10px] font-bold">
+            <span class="text-gray-500">Students: {{ rows|length }}</span>
+            {% if class_avg %}<span class="text-gray-500">Class Avg: <span class="text-gray-900">{{ class_avg|floatformat:1 }}</span></span>{% endif %}
+            {% if highest %}<span class="text-blue-700">Highest: {{ highest|floatformat:0 }}</span>{% endif %}
+            {% if lowest %}<span class="text-red-700">Lowest: {{ lowest|floatformat:0 }}</span>{% endif %}
+        </div>
+    </div>
+</div>
+{% elif selected_class and selected_subject and selected_term %}
+<div class="rounded-2xl bg-white p-12 text-center shadow-sm border border-gray-100">
+    <p class="text-sm text-gray-400">No scores found for this combination.</p>
+</div>
+{% endif %}
+{% endblock %}

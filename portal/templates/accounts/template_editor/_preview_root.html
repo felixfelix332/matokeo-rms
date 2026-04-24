@@ -1,0 +1,74 @@
+<div
+    class="template-preview-report"
+    data-selected-section-1="{{ preview_state.selected_models.section_1 }}"
+    data-selected-section-2="{{ preview_state.selected_models.section_2 }}"
+    data-selected-section-3="{{ preview_state.selected_models.section_3 }}"
+    data-selected-section-4="{{ preview_state.selected_models.section_4 }}"
+    data-selected-section-5="{{ preview_state.selected_models.section_5 }}"
+    data-selected-section-6="{{ preview_state.selected_models.section_6 }}"
+>
+    {% for section in preview_sections %}
+        {% if section.key == "section_1" %}
+            <section class="template-preview-section template-preview-section--{{ section.key }}" data-preview-section="{{ section.key }}" data-selected-model="{{ section.selected_model }}">
+                {% for variant in section.variants %}
+                    <div class="template-preview-model template-preview-model--{{ variant.key }}{% if variant.is_active %} is-active{% endif %}" data-preview-model="{{ variant.key }}">
+                        {% include variant.template_name %}
+                    </div>
+                {% endfor %}
+            </section>
+        {% endif %}
+    {% endfor %}
+
+    <div class="template-preview-title">2026 First Term Report Sheet</div>
+
+    <div class="template-preview-combined template-preview-combined--s3m3">
+        <div class="template-preview-combined-s2" data-combined-preview="section_2">
+            {% for variant in combined_section_2_variants %}
+                <div class="template-preview-model template-preview-model--{{ variant.key }}{% if preview_state.selected_models.section_2 == variant.key %} is-active{% endif %}" data-preview-model="{{ variant.key }}">
+                    {% include variant.template_name %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="template-preview-combined-s3" data-combined-preview="section_3">
+            {% for section in preview_sections %}
+                {% if section.key == "section_3" %}
+                    {% for variant in section.variants %}
+                        {% if variant.key == "model_3" %}
+                            <div class="template-preview-model template-preview-model--{{ variant.key }}{% if preview_state.selected_models.section_3 == variant.key %} is-active{% endif %}" data-preview-model="{{ variant.key }}">
+                                {% include variant.template_name %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    {% for section in preview_sections %}
+        {% if section.key != "section_1" %}
+            {% if preview_state.selected_models.section_3 == "model_3" %}
+                {% if section.key != "section_2" and section.key != "section_3" %}
+                    <section class="template-preview-section template-preview-section--{{ section.key }}" data-preview-section="{{ section.key }}" data-selected-model="{{ section.selected_model }}">
+                        {% for variant in section.variants %}
+                            <div class="template-preview-model template-preview-model--{{ variant.key }}{% if variant.is_active %} is-active{% endif %}" data-preview-model="{{ variant.key }}">
+                                {% include variant.template_name %}
+                            </div>
+                        {% endfor %}
+                    </section>
+                {% endif %}
+            {% else %}
+                <section class="template-preview-section template-preview-section--{{ section.key }}" data-preview-section="{{ section.key }}" data-selected-model="{{ section.selected_model }}">
+                    {% for variant in section.variants %}
+                        <div class="template-preview-model template-preview-model--{{ variant.key }}{% if variant.is_active %} is-active{% endif %}" data-preview-model="{{ variant.key }}">
+                            {% include variant.template_name %}
+                        </div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    <div class="template-preview-footer-note">
+        Nursery default preview wired from Section Models 1, 3, 1, 1, 3, 1
+    </div>
+</div>

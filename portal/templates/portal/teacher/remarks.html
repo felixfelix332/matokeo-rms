@@ -1,0 +1,80 @@
+{% extends "portal/teacher/base.html" %}
+
+{% block title %}Remarks{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-xl font-extrabold text-gray-900">Student Remarks</h2>
+    <p class="mt-1 text-sm text-gray-500">Auto-generated or manually set teacher &amp; headteacher comments</p>
+</div>
+
+<div class="rounded-2xl bg-white p-5 shadow-sm border border-gray-100 mb-6">
+    <form method="get" class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Class</label>
+            <select name="class" onchange="this.form.submit()" class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium">
+                <option value="">Select class...</option>
+                {% for c in assigned_classes %}
+                <option value="{{ c.schoolclass_id }}" {% if selected_class == c.schoolclass_id|stringformat:"d" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if active_term %}
+        <div class="text-xs text-gray-500 self-center">Term: <strong>{{ active_term.session.session_name }} &mdash; Term {{ active_term.term }}</strong></div>
+        {% endif %}
+    </form>
+</div>
+
+{% if school_class and students_data %}
+<form method="post">
+    {% csrf_token %}
+    <div class="space-y-4">
+        {% for sd in students_data %}
+        <div class="rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br {% if sd.student.gender == 'M' %}from-blue-400 to-blue-600{% else %}from-pink-400 to-pink-600{% endif %} text-[10px] font-bold text-white">
+                    {{ sd.student.first_name|first }}{{ sd.student.last_name|first }}
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-900">{{ sd.student.full_name }}</p>
+                    <p class="text-[10px] text-gray-500">{{ sd.student.admission_number }} &bull; Avg: {% if sd.avg %}{{ sd.avg|floatformat:1 }}%{% else %}-{% endif %}</p>
+                </div>
+                {% if sd.avg %}
+                <span class="ml-auto badge {% if sd.avg >= 80 %}badge-ee1{% elif sd.avg >= 70 %}badge-ee2{% elif sd.avg >= 60 %}badge-me1{% elif sd.avg >= 50 %}badge-me2{% elif sd.avg >= 40 %}badge-ae1{% elif sd.avg >= 30 %}badge-ae2{% elif sd.avg >= 20 %}badge-be1{% else %}badge-be2{% endif %}">
+                    {% if sd.avg >= 80 %}EE1{% elif sd.avg >= 70 %}EE2{% elif sd.avg >= 60 %}ME1{% elif sd.avg >= 50 %}ME2{% elif sd.avg >= 40 %}AE1{% elif sd.avg >= 30 %}AE2{% elif sd.avg >= 20 %}BE1{% else %}BE2{% endif %}
+                </span>
+                {% endif %}
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+                        Class Teacher's Comment
+                        <button type="button" onclick="this.closest('div').querySelector('textarea').value='{{ sd.auto_comment }}'" class="ml-2 text-emerald-600 normal-case font-semibold">[Auto-fill]</button>
+                    </label>
+                    <textarea name="teacher_{{ sd.student.id }}" rows="2"
+                        class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs resize-none"
+                        placeholder="Auto: {{ sd.auto_comment }}">{{ sd.teacher_comment|default:sd.auto_comment }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+                        Head Teacher's Comment
+                        <button type="button" onclick="this.closest('div').querySelector('textarea').value='{{ sd.auto_comment }}'" class="ml-2 text-emerald-600 normal-case font-semibold">[Auto-fill]</button>
+                    </label>
+                    <textarea name="headteacher_{{ sd.student.id }}" rows="2"
+                        class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs resize-none"
+                        placeholder="Auto: {{ sd.auto_comment }}">{{ sd.head_comment|default:sd.auto_comment }}</textarea>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-6 sticky bottom-0 bg-white/90 backdrop-blur rounded-2xl border border-gray-200 p-4 flex justify-between items-center">
+        <p class="text-xs text-gray-500">{{ students_data|length }} students</p>
+        <button type="submit" class="rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 hover:from-emerald-700 hover:to-emerald-800">
+            Save All Comments
+        </button>
+    </div>
+</form>
+{% endif %}
+{% endblock %}

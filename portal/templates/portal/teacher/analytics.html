@@ -1,0 +1,177 @@
+{% extends "portal/teacher/base.html" %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-xl font-extrabold text-gray-900">Analytics &amp; Monitoring</h2>
+    <p class="mt-1 text-sm text-gray-500">Subject analysis, grade distribution, and student performance tracking</p>
+</div>
+
+<!-- Class Selector -->
+<div class="rounded-2xl bg-white p-5 shadow-sm border border-gray-100 mb-6">
+    <form method="get" class="flex flex-wrap gap-4 items-end">
+        <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1">Class</label>
+            <select name="class" onchange="this.form.submit()" class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium">
+                <option value="">Select class...</option>
+                {% for c in assigned_classes %}
+                <option value="{{ c.schoolclass_id }}" {% if selected_class == c.schoolclass_id|stringformat:"d" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if active_term %}
+        <div class="text-xs text-gray-500 self-center">Term: <strong>{{ active_term.session.session_name }} &mdash; Term {{ active_term.term }}</strong></div>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Cross-Class Comparison -->
+{% if class_analysis %}
+<div class="grid gap-6 lg:grid-cols-2 mb-6">
+    <div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+        <h3 class="text-sm font-bold text-gray-900 mb-1">Class Mean Comparison</h3>
+        <p class="text-xs text-gray-500 mb-4">Average scores across your assigned classes</p>
+        <div style="height: 260px;"><canvas id="classMeanChart"></canvas></div>
+    </div>
+
+    {% if grade_distribution %}
+    <div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+        <h3 class="text-sm font-bold text-gray-900 mb-1">CBC Grade Distribution</h3>
+        <p class="text-xs text-gray-500 mb-4">Spread of grades across all subjects in selected class</p>
+        <div style="height: 260px;"><canvas id="gradeChart"></canvas></div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Subject Analysis -->
+{% if subject_analysis %}
+<div class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 mb-6">
+    <h3 class="text-sm font-bold text-gray-900 mb-1">Subject Performance Analysis</h3>
+    <p class="text-xs text-gray-500 mb-4">Average, highest, and lowest scores per subject</p>
+    <div style="height: 300px;"><canvas id="subjectChart"></canvas></div>
+</div>
+
+<div class="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden mb-6">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">Subject</th>
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500">Students</th>
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-emerald-700">Average</th>
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-blue-700">Highest</th>
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-red-700">Lowest</th>
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500">Grade</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for s in subject_analysis %}
+                <tr class="table-row">
+                    <td class="px-4 py-2.5 text-xs font-bold text-gray-900">{{ s.name }}</td>
+                    <td class="px-4 py-2.5 text-center text-xs text-gray-600">{{ s.student_count }}</td>
+                    <td class="px-4 py-2.5 text-center text-sm font-extrabold text-gray-900">{{ s.avg_score|floatformat:1 }}</td>
+                    <td class="px-4 py-2.5 text-center text-xs font-bold text-blue-700">{{ s.highest|floatformat:0 }}</td>
+                    <td class="px-4 py-2.5 text-center text-xs font-bold text-red-700">{{ s.lowest|floatformat:0 }}</td>
+                    <td class="px-4 py-2.5 text-center">
+                        <span class="badge {% if s.avg_score >= 80 %}badge-ee1{% elif s.avg_score >= 70 %}badge-ee2{% elif s.avg_score >= 60 %}badge-me1{% elif s.avg_score >= 50 %}badge-me2{% elif s.avg_score >= 40 %}badge-ae1{% elif s.avg_score >= 30 %}badge-ae2{% elif s.avg_score >= 20 %}badge-be1{% else %}badge-be2{% endif %}">
+                            {% if s.avg_score >= 80 %}EE1{% elif s.avg_score >= 70 %}EE2{% elif s.avg_score >= 60 %}ME1{% elif s.avg_score >= 50 %}ME2{% elif s.avg_score >= 40 %}AE1{% elif s.avg_score >= 30 %}AE2{% elif s.avg_score >= 20 %}BE1{% else %}BE2{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top Students Ranking -->
+{% if top_students %}
+<div class="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-5 py-3 border-b border-gray-100">
+        <h3 class="text-sm font-bold text-gray-900">Student Rankings</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500 w-12">Pos</th>
+                    <th class="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">Student</th>
+                    <th class="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">Adm No</th>
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500">Subjects</th>
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500">Average</th>
+                    <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500">Grade</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for s in top_students %}
+                <tr class="table-row">
+                    <td class="px-4 py-2.5 text-center">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-extrabold {% if forloop.counter == 1 %}bg-amber-100 text-amber-700{% elif forloop.counter <= 3 %}bg-gray-100 text-gray-700{% else %}bg-gray-50 text-gray-500{% endif %}">{{ forloop.counter }}</span>
+                    </td>
+                    <td class="px-4 py-2.5 text-xs font-semibold text-gray-900">{{ s.name }}</td>
+                    <td class="px-4 py-2.5 text-[11px] font-mono text-gray-500">{{ s.admission_number }}</td>
+                    <td class="px-4 py-2.5 text-center text-xs text-gray-600">{{ s.subjects }}</td>
+                    <td class="px-4 py-2.5 text-center text-sm font-extrabold text-gray-900">{{ s.avg_score|floatformat:1 }}%</td>
+                    <td class="px-4 py-2.5 text-center">
+                        <span class="badge {% if s.avg_score >= 80 %}badge-ee1{% elif s.avg_score >= 70 %}badge-ee2{% elif s.avg_score >= 60 %}badge-me1{% elif s.avg_score >= 50 %}badge-me2{% elif s.avg_score >= 40 %}badge-ae1{% elif s.avg_score >= 30 %}badge-ae2{% elif s.avg_score >= 20 %}badge-be1{% else %}badge-be2{% endif %}">
+                            {% if s.avg_score >= 80 %}EE1{% elif s.avg_score >= 70 %}EE2{% elif s.avg_score >= 60 %}ME1{% elif s.avg_score >= 50 %}ME2{% elif s.avg_score >= 40 %}AE1{% elif s.avg_score >= 30 %}AE2{% elif s.avg_score >= 20 %}BE1{% else %}BE2{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Class Mean Chart
+    const classData = {{ class_analysis_json|safe }};
+    if (classData.length && document.getElementById('classMeanChart')) {
+        const colors = classData.map(c => c.avg >= 70 ? '#22c55e' : c.avg >= 50 ? '#3b82f6' : '#f97316');
+        new Chart(document.getElementById('classMeanChart'), {
+            type: 'bar',
+            data: { labels: classData.map(d => d.name), datasets: [{ label: 'Mean', data: classData.map(d => d.avg), backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } }, x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' } } } } }
+        });
+    }
+
+    // Grade Distribution Chart
+    const gradeData = {{ grade_distribution_json|safe }};
+    if (gradeData && document.getElementById('gradeChart')) {
+        const labels = Object.keys(gradeData);
+        const values = Object.values(gradeData);
+        const bgColors = ['#22c55e','#4ade80','#3b82f6','#60a5fa','#f59e0b','#fbbf24','#f97316','#ef4444'];
+        new Chart(document.getElementById('gradeChart'), {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: values, backgroundColor: bgColors, borderWidth: 2, borderColor: '#fff' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 10, weight: '600' }, padding: 8, usePointStyle: true } } } }
+        });
+    }
+
+    // Subject Analysis Chart
+    const subjData = {{ subject_analysis_json|safe }};
+    if (subjData.length && document.getElementById('subjectChart')) {
+        new Chart(document.getElementById('subjectChart'), {
+            type: 'bar',
+            data: {
+                labels: subjData.map(d => d.name),
+                datasets: [
+                    { label: 'Average', data: subjData.map(d => d.avg_score), backgroundColor: '#22c55ecc', borderRadius: 6, borderSkipped: false },
+                    { label: 'Highest', data: subjData.map(d => d.highest), backgroundColor: '#3b82f6cc', borderRadius: 6, borderSkipped: false },
+                    { label: 'Lowest', data: subjData.map(d => d.lowest), backgroundColor: '#f97316cc', borderRadius: 6, borderSkipped: false }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { font: { size: 10, weight: '600' }, usePointStyle: true } } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } }, x: { grid: { display: false }, ticks: { font: { size: 9, weight: '600' }, maxRotation: 45 } } } }
+        });
+    }
+});
+</script>
+{% endblock %}

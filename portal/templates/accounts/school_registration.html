@@ -1,0 +1,56 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Registration{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_registration.css' %}">
+{% endblock %}
+
+{% block content_class %} registration-content{% endblock %}
+
+{% block content %}
+    <div class="registration-title">Registration</div>
+    <div class="registration-grid">
+        {% for tile in registration_tiles %}
+        <a href="{{ tile.href }}" class="registration-tile registration-tile-{{ tile.tone }}{% if tile.href == 'javascript:void(0)' %} is-disabled{% endif %}">
+            <span class="registration-tile-icon">
+                {% if tile.icon == 'clipboard' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                    <rect x="6" y="5" width="12" height="15"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6v4H9zM9 10h6M9 14h6"/>
+                </svg>
+                {% elif tile.icon == 'teacher' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 8h12v8H6z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 18h8M10 11h4M12 5v3"/>
+                </svg>
+                {% elif tile.icon == 'student' %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m12 4 8 4-8 4-8-4 8-4Z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 10v3a5 5 0 0 0 10 0v-3"/>
+                </svg>
+                {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 18h16M7 16V8l5-4 5 4v8"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 13l2 2 4-5"/>
+                </svg>
+                {% endif %}
+            </span>
+            <span class="registration-tile-label">{{ tile.label }}</span>
+        </a>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script>
+        (function () {
+            Array.prototype.slice.call(document.querySelectorAll('.registration-tile.is-disabled')).forEach(function (tile) {
+                tile.addEventListener('click', function (event) {
+                    event.preventDefault();
+                });
+            });
+        }());
+    </script>
+{% endblock %}

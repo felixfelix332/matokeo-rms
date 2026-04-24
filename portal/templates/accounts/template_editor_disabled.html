@@ -1,0 +1,4274 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Template Editor{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .entry-content {
+            padding: 20px 26px 24px;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 1fr;
+            min-height: 0;
+        }
+
+        .template-editor-shell {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .template-editor-fitbox {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .template-editor-canvas {
+            width: 1620px;
+            height: 620px;
+            transform-origin: top left;
+            will-change: transform;
+            display: grid;
+            grid-template-rows: auto 1fr;
+        }
+
+        .template-editor-title {
+            margin: 0 0 14px;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 400;
+            line-height: 1.1;
+            color: #111827;
+        }
+
+        .template-editor-close {
+            position: absolute;
+            top: -6px;
+            right: -8px;
+            width: 42px;
+            height: 42px;
+            border: none;
+            background: #e11d8f;
+            color: #fff;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .template-editor-workspace {
+            display: grid;
+            grid-template-columns: 458px minmax(0, 1fr);
+            gap: 34px;
+            align-items: start;
+            min-height: 0;
+            height: 100%;
+            padding-bottom: 0;
+        }
+
+        .template-editor-left {
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .template-editor-topline {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex: 0 0 auto;
+        }
+
+        .template-editor-topline label {
+            font-size: 0.92rem;
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .template-editor-select {
+            width: 286px;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #cfd4dc;
+            background: #fff;
+            font-size: 0.86rem;
+        }
+
+        .template-editor-delete {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #cfd4dc;
+            border-radius: 4px;
+            background: #d1d5db;
+            color: #fff;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .template-editor-panel {
+            border: 1px solid #8d9299;
+            background: #fff;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            align-self: stretch;
+            overflow: hidden;
+        }
+
+        .template-editor-tabs {
+            display: flex;
+            align-items: flex-end;
+            gap: 0;
+            padding-top: 0;
+            transform: translateY(-1px);
+            flex: 0 0 auto;
+        }
+
+        .template-editor-tab {
+            min-width: 182px;
+            padding: 12px 18px;
+            border: 1px solid #8d9299;
+            border-bottom: none;
+            background: #f4f6f8;
+            color: #4b5563;
+            font-size: 0.86rem;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .template-editor-tab + .template-editor-tab {
+            margin-left: -1px;
+        }
+
+        .template-editor-tab.is-active {
+            background: #ffffff;
+            color: #111827;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+        }
+
+        .template-editor-tab.is-active::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 3px;
+            background: #ffffff;
+        }
+
+        .template-editor-tab.is-passive {
+            background: #eef2f6;
+            color: #6b7280;
+        }
+
+        .template-editor-panel-body {
+            padding: 15px 16px 14px;
+            border-top: 1px solid #8d9299;
+            min-height: 0;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+        }
+
+        .template-editor-layout-list {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            padding-right: 6px;
+        }
+
+        .template-editor-layout-scroll {
+            height: 100%;
+            max-height: 100%;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #8d9299 #f1f3f5;
+        }
+
+        .template-editor-layout-scroll::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .template-editor-layout-scroll::-webkit-scrollbar-track {
+            background: #f1f3f5;
+        }
+
+        .template-editor-layout-scroll::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 999px;
+            border: 2px solid #f1f3f5;
+        }
+
+        .template-editor-row {
+            margin-bottom: 13px;
+        }
+
+        .template-editor-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .template-editor-section-title {
+            margin-bottom: 6px;
+            color: #111827;
+            font-size: 0.87rem;
+            font-weight: 500;
+        }
+
+        .template-editor-row-controls {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 7px;
+            align-items: center;
+        }
+
+        .template-editor-model {
+            width: 100%;
+            height: 35px;
+            padding: 0 9px;
+            border: 1px solid #cfd4dc;
+            background: #fff;
+            font-size: 0.83rem;
+        }
+
+        .template-editor-model:disabled {
+            background: #f3f4f6;
+            color: #6b7280;
+            border-color: #d7dbe2;
+            cursor: not-allowed;
+        }
+
+        .template-editor-model option:disabled {
+            color: #9ca3af;
+        }
+
+        .template-editor-customize {
+            height: 35px;
+            padding: 0 14px;
+            border: none;
+            background: #7664eb;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .template-editor-customize:disabled {
+            background: #c7cbe7;
+            color: #f8fafc;
+            cursor: not-allowed;
+        }
+
+        .template-editor-customize.is-hidden {
+            display: none;
+        }
+
+        .template-editor-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.22);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 60;
+        }
+
+        .template-editor-modal-backdrop.is-open {
+            display: flex;
+        }
+
+        .template-editor-modal {
+            position: relative;
+            width: 704px;
+            max-width: calc(100vw - 48px);
+            background: #ffffff;
+            border: 1px solid #8d9299;
+            padding: 18px 46px 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+        }
+
+        .template-editor-modal-title {
+            margin: 0 0 20px;
+            text-align: center;
+            font-size: 1.72rem;
+            font-weight: 400;
+            color: #111827;
+        }
+
+        .template-editor-modal-close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: #e11d8f;
+            color: #fff;
+            font-size: 1.4rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .template-editor-modal-field {
+            margin-bottom: 10px;
+        }
+
+        .template-editor-modal-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.86rem;
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .template-editor-modal-input,
+        .template-editor-modal-textarea {
+            width: 100%;
+            border: 1px solid #8d9299;
+            background: #fff;
+            color: #111827;
+            font-size: 0.84rem;
+            font-family: inherit;
+        }
+
+        .template-editor-modal-input {
+            height: 35px;
+            padding: 0 6px;
+        }
+
+        .template-editor-modal-textarea {
+            min-height: 96px;
+            padding: 6px;
+            resize: none;
+        }
+
+        .template-editor-modal-actions {
+            margin-top: 14px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .template-editor-modal-save {
+            min-width: 268px;
+            height: 43px;
+            border: none;
+            background: #2a7c4a;
+            color: #fff;
+            font-size: 0.96rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .template-editor-student-grid {
+            margin-top: 4px;
+            border: 1px solid #8d9299;
+            background: #fff;
+        }
+
+        .template-editor-student-row {
+            display: grid;
+            grid-template-columns: 152px minmax(0, 1fr);
+            min-height: 42px;
+            border-bottom: 1px solid #8d9299;
+        }
+
+        .template-editor-student-row:last-child {
+            border-bottom: none;
+        }
+
+        .template-editor-student-label {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            border-right: 1px solid #8d9299;
+            font-size: 0.84rem;
+            color: #111827;
+            font-weight: 500;
+        }
+
+        .template-editor-student-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 14px;
+            font-size: 0.84rem;
+            color: #111827;
+        }
+
+        .template-editor-student-toggle input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        .template-editor-student-note {
+            margin-top: 10px;
+            font-size: 0.78rem;
+            color: #4b5563;
+        }
+
+        .template-editor-headers-modal {
+            width: 760px;
+            max-width: calc(100vw - 120px);
+            max-height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .template-editor-headers-grid {
+            margin-top: 2px;
+            border: 1px solid #8d9299;
+            background: #fff;
+            max-height: 460px;
+            overflow-y: auto;
+        }
+
+        .template-editor-headers-head,
+        .template-editor-headers-row {
+            display: grid;
+            grid-template-columns: 88px minmax(0, 1fr) 98px 98px;
+        }
+
+        .template-editor-headers-head {
+            border-bottom: 1px solid #8d9299;
+            font-size: 0.82rem;
+            color: #111827;
+            background: #fff;
+        }
+
+        .template-editor-headers-row {
+            min-height: 32px;
+            border-bottom: 1px solid #8d9299;
+            font-size: 0.82rem;
+            color: #111827;
+        }
+
+        .template-editor-headers-row:last-child {
+            border-bottom: none;
+        }
+
+        .template-editor-headers-cell {
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            border-right: 1px solid #8d9299;
+        }
+
+        .template-editor-headers-head .template-editor-headers-cell {
+            font-weight: 500;
+        }
+
+        .template-editor-headers-cell:last-child {
+            border-right: none;
+        }
+
+        .template-editor-headers-placeholder {
+            color: #7c8798;
+            font-style: italic;
+        }
+
+        .template-editor-headers-input {
+            width: 100%;
+            height: 24px;
+            border: 1px solid #8d9299;
+            background: #fff;
+            color: #111827;
+            font-size: 0.8rem;
+            padding: 0 6px;
+        }
+
+        .template-editor-headers-visibility {
+            justify-content: center;
+        }
+
+        .template-editor-headers-visibility input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+        }
+
+        .template-editor-headers-actions {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 26px;
+        }
+
+        .template-editor-headers-actions.is-with-grading {
+            justify-content: space-between;
+        }
+
+        .template-editor-headers-actions-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 26px;
+            flex: 1 1 auto;
+        }
+
+        .template-editor-headers-grading {
+            min-width: 124px;
+            height: 43px;
+            border: none;
+            background: #149c22;
+            color: #fff;
+            font-size: 0.96rem;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .template-editor-modal-title-subtitle {
+            margin-left: 8px;
+            font-size: 0.52em;
+            font-style: italic;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+
+        .template-editor-headers-move {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            color: #6b7280;
+            font-size: 0.82rem;
+        }
+
+        .template-editor-headers-move button {
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            cursor: default;
+            padding: 0;
+        }
+
+        .template-editor-student-actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+        }
+
+        .template-editor-modal-reset {
+            min-width: 160px;
+            height: 43px;
+            border: none;
+            background: #149c22;
+            color: #fff;
+            font-size: 0.96rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .template-editor-grading-modal {
+            width: 660px;
+            max-width: calc(100vw - 160px);
+            padding: 18px 22px 20px;
+        }
+
+        .template-editor-grading-body {
+            border: 1px solid #d7dbe2;
+            background: #f8fafc;
+            padding: 18px 18px 14px;
+        }
+
+        .template-editor-grading-tabs {
+            display: flex;
+            align-items: stretch;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .template-editor-grading-tab {
+            min-width: 150px;
+            height: 48px;
+            border: none;
+            background: #1565c0;
+            color: #fff;
+            font-size: 0.86rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .template-editor-grading-tab.is-inactive {
+            background: transparent;
+            color: #111827;
+        }
+
+        .template-editor-grading-panel {
+            display: none;
+        }
+
+        .template-editor-grading-panel.is-active {
+            display: block;
+        }
+
+        .template-editor-grading-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 180px;
+        }
+
+        .template-editor-grading-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.88rem;
+            color: #111827;
+        }
+
+        .template-editor-grading-option input,
+        .template-editor-grading-checkbox input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+
+        .template-editor-grading-term {
+            border: 1px solid #d7dbe2;
+            background: #fff;
+            padding: 14px 16px 12px;
+        }
+
+        .template-editor-grading-term + .template-editor-grading-term {
+            margin-top: 16px;
+        }
+
+        .template-editor-grading-term-title {
+            margin: 0 0 12px;
+            font-size: 0.96rem;
+            font-weight: 500;
+            color: #111827;
+        }
+
+        .template-editor-grading-checkboxes {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .template-editor-grading-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.88rem;
+            color: #111827;
+        }
+
+        .template-editor-grading-actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .template-editor-division-modal {
+            width: 760px;
+            max-width: calc(100vw - 160px);
+            padding: 18px 34px 24px;
+        }
+
+        .template-editor-division-grid {
+            border: 1px solid #4b5563;
+            min-height: 360px;
+            background: #fff;
+        }
+
+        .template-editor-division-row {
+            display: grid;
+            grid-template-columns: 44px minmax(0, 86px) minmax(0, 1fr);
+            min-height: 33px;
+            border-bottom: 1px solid #b5b8bd;
+        }
+
+        .template-editor-division-row:last-child {
+            border-bottom: none;
+        }
+
+        .template-editor-division-cell {
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            border-right: 1px solid #b5b8bd;
+        }
+
+        .template-editor-division-cell:last-child {
+            border-right: none;
+        }
+
+        .template-editor-division-head {
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        .template-editor-division-selector {
+            justify-content: center;
+            color: #4b5563;
+            font-weight: 700;
+        }
+
+        .template-editor-division-input {
+            width: 100%;
+            height: 25px;
+            border: none;
+            background: transparent;
+            color: #111827;
+            font-size: 0.86rem;
+            padding: 0 2px;
+        }
+
+        .template-editor-division-input:focus {
+            outline: 1px solid #0b69c7;
+            background: #eef6ff;
+        }
+
+        .template-editor-division-actions {
+            margin-top: 32px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .template-editor-skills-modal {
+            width: 740px;
+            max-width: calc(100vw - 140px);
+            max-height: calc(100vh - 84px);
+            padding: 16px 24px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .template-editor-skills-title {
+            max-width: 360px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 14px;
+            line-height: 1.15;
+            font-size: 1.18rem;
+        }
+
+        .template-editor-skills-tabs-row {
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .template-editor-skills-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            flex: 1 1 auto;
+        }
+
+        .template-editor-skills-tab {
+            min-height: 40px;
+            border: 1px solid #d7dbe2;
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.74rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-transform: uppercase;
+            line-height: 1.2;
+            padding: 0 10px;
+        }
+
+        .template-editor-skills-tab.is-active {
+            background: #1565c0;
+            color: #ffffff;
+            border-color: #1565c0;
+        }
+
+        .template-editor-skills-tab-nav {
+            width: 38px;
+            border: 1px solid #8d9299;
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .template-editor-skills-tab-nav:disabled {
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .template-editor-skills-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 132px;
+            gap: 14px;
+            align-items: start;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        .template-editor-skills-editor {
+            display: grid;
+            gap: 8px;
+            min-height: 0;
+        }
+
+        .template-editor-skills-input {
+            width: 100%;
+            height: 32px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.82rem;
+            padding: 0 8px;
+            text-transform: uppercase;
+        }
+
+        .template-editor-skills-list {
+            width: 100%;
+            height: 250px;
+            border: 1px solid #8d9299;
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.82rem;
+            padding: 8px;
+        }
+
+        .template-editor-skills-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .template-editor-skills-action {
+            min-height: 38px;
+            border: 1px solid #d7dbe2;
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .template-editor-skills-footer {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .template-editor-skills-keys {
+            min-width: 128px;
+            height: 40px;
+            border: none;
+            background: #149c22;
+            color: #ffffff;
+            font-size: 0.84rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .template-editor-skills-save {
+            min-width: 220px;
+            height: 40px;
+            border: none;
+            background: #07068c;
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        @media (max-height: 900px) {
+            .template-editor-skills-list {
+                height: 220px;
+            }
+        }
+
+        .template-editor-rating-modal {
+            width: 520px;
+            max-width: calc(100vw - 160px);
+        }
+
+        .template-editor-rating-grid {
+            border: 1px solid #8d9299;
+            background: #ffffff;
+        }
+
+        .template-editor-rating-row {
+            display: grid;
+            grid-template-columns: 88px minmax(0, 1fr);
+            min-height: 40px;
+            border-bottom: 1px solid #8d9299;
+        }
+
+        .template-editor-rating-row:last-child {
+            border-bottom: none;
+        }
+
+        .template-editor-rating-cell {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            border-right: 1px solid #8d9299;
+            font-size: 0.84rem;
+            color: #111827;
+        }
+
+        .template-editor-rating-cell:last-child {
+            border-right: none;
+        }
+
+        .template-editor-rating-input {
+            width: 100%;
+            height: 28px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #111827;
+            font-size: 0.82rem;
+            padding: 0 8px;
+        }
+
+        .template-editor-rating-actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .template-editor-lock-note {
+            margin-top: 12px;
+            padding: 9px 11px;
+            border: 1px solid #d7dbe2;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.75rem;
+            line-height: 1.45;
+        }
+
+        .template-editor-spacer {
+            width: 110px;
+            height: 33px;
+        }
+
+        .template-editor-toggle {
+            width: 20px;
+            height: 20px;
+            accent-color: #0b69c7;
+        }
+
+        .template-editor-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            margin-bottom: 0;
+            padding-left: 6px;
+            flex: 0 0 auto;
+        }
+
+        .template-editor-action {
+            min-width: 188px;
+            height: 40px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .template-editor-action-save {
+            background: #6a8f1b;
+        }
+
+        .template-editor-action-new {
+            background: #0f96a7;
+        }
+
+        .template-editor-action-preview {
+            min-width: 182px;
+            margin: 0 auto;
+            background: #0b129b;
+        }
+
+        .template-editor-action.is-disabled {
+            background: #8d93c5;
+            color: rgba(255, 255, 255, 0.92);
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        .template-editor-action.is-disabled .template-editor-action-icon {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .template-editor-action-icon {
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.14);
+            border-radius: 4px;
+            font-size: 0.86rem;
+        }
+
+        .template-editor-right {
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .template-editor-preview-tools {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-right: 6px;
+            flex: 0 0 auto;
+        }
+
+        .template-editor-preview-tool {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #fff;
+            color: #86a6d9;
+            font-size: 1.45rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .template-editor-preview-stage {
+            border: 1px solid #8d9299;
+            background: #fff;
+            min-height: 0;
+            flex: 1 1 auto;
+            height: auto;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px;
+        }
+
+        .template-editor-preview-stage.is-disabled {
+            background:
+                linear-gradient(135deg, rgba(238, 242, 255, 0.8), rgba(248, 250, 252, 0.95)),
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(148, 163, 184, 0.08),
+                    rgba(148, 163, 184, 0.08) 16px,
+                    rgba(255, 255, 255, 0.7) 16px,
+                    rgba(255, 255, 255, 0.7) 32px
+                );
+        }
+
+        .template-editor-preview-empty {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 28px;
+            text-align: center;
+            color: #334155;
+        }
+
+        .template-editor-preview-empty-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 128px;
+            height: 32px;
+            padding: 0 14px;
+            background: #dbe4ff;
+            color: #374151;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .template-editor-preview-empty-title {
+            font-size: 1.02rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .template-editor-preview-empty-text {
+            max-width: 360px;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            color: #475569;
+        }
+
+        .template-editor-preview-stage::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .template-editor-preview-stage::-webkit-scrollbar-track {
+            background: #e5e7eb;
+        }
+
+        .template-editor-preview-stage::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 999px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .template-preview-sheet {
+            width: 100%;
+            min-height: 1120px;
+            border: 1px solid #c4c4c4;
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.14);
+            padding: 16px 18px 24px;
+        }
+
+        .template-preview-box {
+            border: 2px solid #d4147a;
+            background: #fff;
+        }
+
+        .template-preview-section {
+            min-width: 0;
+        }
+
+        .template-preview-model {
+            display: none;
+            min-width: 0;
+        }
+
+        .template-preview-model.is-active {
+            display: block;
+        }
+
+        .template-preview-header {
+            display: grid;
+            align-items: center;
+            background: #f7dbe9;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_1.is-active .template-preview-header {
+            grid-template-columns: 132px minmax(0, 1fr);
+            padding: 8px 10px;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_2.is-active .template-preview-header {
+            border-width: 0;
+            background: #f5dbe7;
+            grid-template-columns: 132px minmax(0, 1fr);
+            padding: 10px 14px;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_2.is-active .template-preview-logo {
+            width: 108px;
+            height: 108px;
+            border: none;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_2.is-active .template-preview-school-name {
+            font-size: 1.3rem;
+            line-height: 1.06;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_2.is-active .template-preview-school-meta {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            line-height: 1.22;
+            font-weight: 700;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_3.is-active .template-preview-s1m3-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 156px minmax(0, 1fr);
+            align-items: stretch;
+            gap: 10px;
+            padding: 0;
+            background: #f5dbe7;
+            overflow: hidden;
+        }
+
+        .template-preview-s1m3-side {
+            padding: 12px 14px 10px;
+            text-align: center;
+            color: #111827;
+        }
+
+        .template-preview-s1m3-logo {
+            width: 156px;
+            height: 156px;
+            align-self: center;
+            justify-self: center;
+            display: grid;
+            place-items: center;
+            background: #fff;
+        }
+
+        .template-preview-s1m3-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .template-preview-s1m3-school-name {
+            font-size: 0.9rem;
+            line-height: 1.12;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .template-preview-s1m3-meta {
+            margin-top: 7px;
+            font-size: 0.73rem;
+            line-height: 1.26;
+            font-weight: 700;
+        }
+
+        .template-preview-logo {
+            width: 120px;
+            height: 120px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_1.is-active .template-preview-logo {
+            width: 110px;
+            height: 110px;
+            border: none;
+        }
+
+        .template-preview-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .template-preview-logo-fallback {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #0f172a;
+            text-align: center;
+            letter-spacing: 0.06em;
+        }
+
+        .template-preview-school {
+            text-align: center;
+            color: #111827;
+        }
+
+        .template-preview-school-name {
+            font-size: 1.22rem;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            text-transform: uppercase;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_1.is-active .template-preview-school-name {
+            font-size: 1.38rem;
+            line-height: 1.05;
+        }
+
+        .template-preview-school-meta {
+            margin-top: 4px;
+            font-size: 0.77rem;
+            line-height: 1.28;
+            font-weight: 600;
+        }
+
+        .template-preview-section--section_1 .template-preview-model--model_1.is-active .template-preview-school-meta {
+            margin-top: 5px;
+            font-size: 0.76rem;
+            line-height: 1.23;
+            font-weight: 700;
+        }
+
+        .template-preview-title {
+            margin: 12px 0 10px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #111827;
+        }
+
+        .template-preview-combined {
+            display: none;
+            min-width: 0;
+        }
+
+        .template-preview-combined-s2,
+        .template-preview-combined-s3 {
+            min-width: 0;
+        }
+
+        .template-preview-combined-s2 .template-preview-model,
+        .template-preview-combined-s3 .template-preview-model {
+            display: none;
+            min-width: 0;
+        }
+
+        .template-preview-combined-s2 .template-preview-model.is-active,
+        .template-preview-combined-s3 .template-preview-model.is-active {
+            display: block;
+        }
+
+        .template-preview-report[data-selected-section-3="model_3"] .template-preview-combined--s3m3 {
+            display: block;
+        }
+
+        .template-preview-report[data-selected-section-3="model_3"] .template-preview-section--section_2,
+        .template-preview-report[data-selected-section-3="model_3"] .template-preview-section--section_3 {
+            display: none;
+        }
+
+        .template-preview-combined--s3m3 .template-preview-combined-s3 {
+            margin-top: 4px;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_3.is-active,
+        .template-preview-combined-s2 .template-preview-model--model_3.is-active {
+            grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.98fr) minmax(0, 0.82fr) 106px;
+            gap: 5px;
+            align-items: start;
+            display: grid;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active {
+            grid-template-columns: minmax(0, 1.18fr) 92px minmax(0, 1.06fr) minmax(0, 0.72fr);
+            gap: 6px;
+            align-items: start;
+            display: grid;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_2.is-active,
+        .template-preview-combined-s2 .template-preview-model--model_2.is-active {
+            display: block;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_4.is-active,
+        .template-preview-combined-s2 .template-preview-model--model_4.is-active {
+            grid-template-columns: minmax(0, 1.24fr) minmax(0, 1.04fr) minmax(0, 0.72fr);
+            gap: 2px;
+            align-items: start;
+            display: grid;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_5.is-active,
+        .template-preview-combined-s2 .template-preview-model--model_5.is-active {
+            display: block;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_6.is-active,
+        .template-preview-combined-s2 .template-preview-model--model_6.is-active {
+            display: block;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_7.is-active,
+        .template-preview-combined-s2 .template-preview-model--model_7.is-active {
+            display: block;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_8.is-active,
+        .template-preview-combined-s2 .template-preview-model--model_8.is-active {
+            display: block;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active > *,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active > * {
+            min-width: 0;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-avatar,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-avatar {
+            width: 92px;
+            height: 138px;
+            align-self: center;
+            justify-self: center;
+            background: transparent;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-avatar img,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-attendance,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-attendance {
+            font-size: 0.64rem;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-attendance .template-preview-subhead,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-attendance .template-preview-subhead {
+            font-size: 0.56rem;
+            line-height: 1.08;
+            padding-left: 3px;
+            padding-right: 3px;
+            word-break: normal;
+            overflow-wrap: break-word;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-attendance td,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-attendance td {
+            font-size: 0.66rem;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-scorecard td:first-child,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-scorecard td:first-child {
+            width: 68%;
+            font-size: 0.58rem;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-scorecard td:last-child,
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-scorecard-bottom td,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-scorecard td:last-child,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-scorecard-bottom td {
+            font-size: 0.66rem;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_1.is-active .template-preview-scorecard-bottom,
+        .template-preview-combined-s2 .template-preview-model--model_1.is-active .template-preview-scorecard-bottom {
+            margin-top: 4px;
+        }
+
+        .template-preview-section--section_2 .template-preview-model .template-preview-table,
+        .template-preview-combined-s2 .template-preview-model .template-preview-table {
+            font-size: 0.64rem;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_4.is-active .template-preview-attendance,
+        .template-preview-combined-s2 .template-preview-model--model_4.is-active .template-preview-attendance {
+            font-size: 0.61rem;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_4.is-active .template-preview-attendance .template-preview-subhead,
+        .template-preview-combined-s2 .template-preview-model--model_4.is-active .template-preview-attendance .template-preview-subhead {
+            font-size: 0.53rem;
+            line-height: 1.1;
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_4.is-active .template-preview-scorecard td:first-child,
+        .template-preview-combined-s2 .template-preview-model--model_4.is-active .template-preview-scorecard td:first-child {
+            width: 72%;
+            font-size: 0.57rem;
+        }
+
+        .template-preview-section--section_2 .template-preview-model--model_4.is-active .template-preview-scorecard td:last-child,
+        .template-preview-section--section_2 .template-preview-model--model_4.is-active .template-preview-scorecard-bottom td,
+        .template-preview-combined-s2 .template-preview-model--model_4.is-active .template-preview-scorecard td:last-child,
+        .template-preview-combined-s2 .template-preview-model--model_4.is-active .template-preview-scorecard-bottom td {
+            font-size: 0.65rem;
+        }
+
+        .template-preview-s2m4-duration {
+            margin-top: 4px;
+        }
+
+        .template-preview-s2m5-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.98fr) minmax(0, 0.98fr) minmax(0, 0.92fr) 116px;
+            gap: 18px;
+            align-items: center;
+            margin: 8px 12px 18px;
+            color: #111827;
+        }
+
+        .template-preview-s2m5-column {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .template-preview-s2m5-row {
+            display: grid;
+            grid-template-columns: max-content max-content;
+            gap: 14px;
+            align-items: baseline;
+            justify-content: start;
+        }
+
+        .template-preview-s2m5-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            line-height: 1.12;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .template-preview-s2m5-value {
+            font-size: 0.7rem;
+            font-weight: 700;
+            line-height: 1.12;
+            color: #222;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .template-preview-s2m5-column--score .template-preview-s2m5-row {
+            grid-template-columns: max-content 40px;
+            gap: 14px;
+        }
+
+        .template-preview-s2m5-column--score .template-preview-s2m5-value {
+            text-align: right;
+        }
+
+        .template-preview-s2m5-avatar {
+            width: 116px;
+            height: 146px;
+            align-self: center;
+            justify-self: center;
+            background: transparent;
+        }
+
+        .template-preview-s2m5-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .template-preview-s2m6-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.92fr) minmax(0, 0.84fr);
+            gap: 220px;
+            align-items: start;
+            margin: 8px 14px 10px;
+            color: #111827;
+        }
+
+        .template-preview-s2m6-column {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .template-preview-s2m6-row {
+            display: grid;
+            grid-template-columns: max-content max-content;
+            gap: 18px;
+            align-items: baseline;
+            justify-content: start;
+        }
+
+        .template-preview-s2m6-label {
+            font-size: 0.76rem;
+            font-weight: 800;
+            line-height: 1.12;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .template-preview-s2m6-value {
+            font-size: 0.76rem;
+            font-weight: 700;
+            line-height: 1.12;
+            color: #222;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .template-preview-s2m7-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 0.8fr) 126px;
+            gap: 96px;
+            align-items: end;
+            margin: 10px 14px 12px;
+            color: #111827;
+        }
+
+        .template-preview-s2m7-column {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+        }
+
+        .template-preview-s2m7-row {
+            display: grid;
+            grid-template-columns: max-content max-content;
+            gap: 20px;
+            align-items: baseline;
+            justify-content: start;
+        }
+
+        .template-preview-s2m7-label {
+            font-size: 0.78rem;
+            font-weight: 800;
+            line-height: 1.12;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .template-preview-s2m7-value {
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1.12;
+            color: #222;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .template-preview-s2m7-avatar {
+            width: 126px;
+            height: 150px;
+            align-self: end;
+            justify-self: center;
+            background: transparent;
+        }
+
+        .template-preview-s2m7-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .template-preview-s2m8-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 112px;
+            align-items: start;
+            margin: 12px 10px 14px;
+            color: #111827;
+        }
+
+        .template-preview-s2m8-column {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 13px;
+        }
+
+        .template-preview-s2m8-row {
+            display: grid;
+            grid-template-columns: max-content max-content;
+            gap: 16px;
+            align-items: baseline;
+            justify-content: start;
+        }
+
+        .template-preview-s2m8-label {
+            font-size: 0.79rem;
+            font-weight: 800;
+            line-height: 1.14;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .template-preview-s2m8-value {
+            font-size: 0.79rem;
+            font-weight: 700;
+            line-height: 1.14;
+            color: #222;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .template-preview-s2m9-grid {
+            display: block;
+            margin: 12px 14px 16px;
+            color: #111827;
+        }
+
+        .template-preview-s2m9-content {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 136px;
+            gap: 44px;
+            align-items: end;
+        }
+
+        .template-preview-s2m9-pairs {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .template-preview-s2m9-pair {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            column-gap: 48px;
+            row-gap: 10px;
+        }
+
+        .template-preview-s2m9-pair--single {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .template-preview-s2m9-row {
+            display: grid;
+            grid-template-columns: max-content max-content;
+            gap: 14px;
+            align-items: baseline;
+            justify-content: start;
+        }
+
+        .template-preview-s2m9-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            line-height: 1.14;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .template-preview-s2m9-value {
+            font-size: 0.8rem;
+            font-weight: 700;
+            line-height: 1.14;
+            color: #222;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .template-preview-s2m9-avatar {
+            width: 136px;
+            height: 158px;
+            align-self: center;
+            justify-self: center;
+            background: transparent;
+        }
+
+        .template-preview-s2m9-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .template-preview-s2m10-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr) 136px;
+            gap: 94px;
+            align-items: end;
+            margin: 12px 14px 16px;
+            color: #111827;
+        }
+
+        .template-preview-s2m10-column {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .template-preview-s2m10-row {
+            display: grid;
+            grid-template-columns: max-content max-content;
+            gap: 20px;
+            align-items: baseline;
+            justify-content: start;
+        }
+
+        .template-preview-s2m10-label {
+            font-size: 0.8rem;
+            font-weight: 800;
+            line-height: 1.14;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .template-preview-s2m10-value {
+            font-size: 0.8rem;
+            font-weight: 700;
+            line-height: 1.14;
+            color: #222;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .template-preview-s2m10-avatar {
+            width: 136px;
+            height: 158px;
+            align-self: end;
+            justify-self: center;
+            background: transparent;
+        }
+
+        .template-preview-s2m10-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .template-preview-s2m2-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.03fr) minmax(0, 1fr) minmax(0, 0.96fr);
+            gap: 34px;
+            align-items: start;
+            margin: 10px 12px 18px;
+            color: #111827;
+        }
+
+        .template-preview-s2m2-column {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .template-preview-s2m2-row {
+            display: grid;
+            grid-template-columns: max-content max-content;
+            gap: 18px;
+            align-items: baseline;
+            margin-bottom: 0;
+            justify-content: start;
+        }
+
+        .template-preview-s2m2-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1.12;
+            color: #222;
+            white-space: nowrap;
+        }
+
+        .template-preview-s2m2-value {
+            font-size: 0.72rem;
+            font-weight: 700;
+            line-height: 1.12;
+            color: #222;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .template-preview-s2m2-column--score {
+            justify-self: start;
+        }
+
+        .template-preview-s2m2-column--score .template-preview-s2m2-row {
+            grid-template-columns: max-content 42px;
+            gap: 16px;
+        }
+
+        .template-preview-s2m2-column--score .template-preview-s2m2-value {
+            text-align: right;
+        }
+
+        .template-preview-personal td:first-child {
+            width: 28%;
+            font-weight: 800;
+        }
+
+        .template-preview-personal td:last-child {
+            font-weight: 600;
+        }
+
+        .template-preview-personal td,
+        .template-preview-attendance td,
+        .template-preview-scorecard td,
+        .template-preview-scorecard-bottom td {
+            line-height: 1.08;
+        }
+
+        .template-preview-attendance th,
+        .template-preview-attendance td,
+        .template-preview-scorecard th,
+        .template-preview-scorecard td {
+            text-align: center;
+        }
+
+        .template-preview-attendance .template-preview-subhead,
+        .template-preview-scorecard td:first-child {
+            font-weight: 800;
+            color: #2a2a2a;
+        }
+
+        .template-preview-attendance .template-preview-subhead {
+            line-height: 1.16;
+            font-size: 0.55rem;
+        }
+
+        .template-preview-attendance td,
+        .template-preview-scorecard td:last-child {
+            font-weight: 600;
+        }
+
+        .template-preview-scorecard td:first-child {
+            text-transform: uppercase;
+            width: 74%;
+            font-size: 0.62rem;
+        }
+
+        .template-preview-scorecard td:last-child {
+            width: 26%;
+            font-size: 0.68rem;
+        }
+
+        .template-preview-scorecard-bottom {
+            margin-top: 3px;
+        }
+
+        .template-preview-scorecard-bottom td {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.66rem;
+        }
+
+        .template-preview-scorecard-bottom td:first-child,
+        .template-preview-scorecard-bottom td:nth-child(2) {
+            font-weight: 800;
+            text-transform: none;
+        }
+
+        .template-preview-s2m1-duration,
+        .template-preview-s2m3-duration {
+            margin-top: 4px;
+        }
+
+        .template-preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 0.66rem;
+            color: #111827;
+        }
+
+        .template-preview-table th,
+        .template-preview-table td {
+            border: 2px solid #d4147a;
+            padding: 3px 4px;
+            vertical-align: middle;
+            word-break: break-word;
+        }
+
+        .template-preview-table th {
+            font-weight: 800;
+            background: #f7dbe9;
+            text-transform: uppercase;
+        }
+
+        .template-preview-table .template-preview-subhead {
+            background: #fff;
+            font-size: 0.58rem;
+            font-weight: 800;
+        }
+
+        .template-preview-avatar {
+            width: 106px;
+            height: 126px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+        }
+
+        .template-preview-avatar svg {
+            width: 84px;
+            height: 84px;
+        }
+
+        .template-preview-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .template-preview-academic,
+        .template-preview-grade {
+            margin-top: 12px;
+        }
+
+        .template-preview-academic .template-preview-table {
+            font-size: 0.62rem;
+        }
+
+        .template-preview-academic .template-preview-table col.template-preview-subject-col {
+            width: 35%;
+        }
+
+        .template-preview-academic .template-preview-table col.template-preview-academic-col-small {
+            width: 5%;
+        }
+
+        .template-preview-academic .template-preview-table col.template-preview-academic-col-medium {
+            width: 7%;
+        }
+
+        .template-preview-academic .template-preview-table col.template-preview-academic-col-wide {
+            width: 7.67%;
+        }
+
+        .template-preview-academic .template-preview-table th,
+        .template-preview-academic .template-preview-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .template-preview-academic .template-preview-table td:first-child {
+            text-align: left;
+        }
+
+        .template-preview-academic .template-preview-table th.template-preview-academic-title {
+            text-align: center;
+            background: #f7dbe9;
+            font-size: 0.72rem;
+            letter-spacing: 0.01em;
+        }
+
+        .template-preview-academic .template-preview-table th.template-preview-academic-subject {
+            text-align: center;
+            font-size: 0.98rem;
+            line-height: 1.1;
+            background: #fff;
+        }
+
+        .template-preview-academic .template-preview-table th.template-preview-academic-main {
+            font-size: 0.62rem;
+            line-height: 1.1;
+            background: #fff;
+            text-align: center;
+            padding-left: 2px;
+            padding-right: 2px;
+        }
+
+        .template-preview-academic .template-preview-table th.template-preview-academic-mark {
+            background: #fff;
+            font-size: 0.72rem;
+            line-height: 1;
+            text-align: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .template-preview-academic .template-preview-table tr:nth-child(2) th {
+            padding-top: 8px;
+            padding-bottom: 5px;
+        }
+
+        .template-preview-academic .template-preview-table tr:nth-child(3) th {
+            padding-top: 3px;
+            padding-bottom: 4px;
+        }
+
+        .template-preview-academic-model2 .template-preview-table col.template-preview-subject-col {
+            width: 36%;
+        }
+
+        .template-preview-academic-model2 .template-preview-table col.template-preview-academic-col-small {
+            width: 6%;
+        }
+
+        .template-preview-academic-model2 .template-preview-table col.template-preview-academic-col-medium {
+            width: 8%;
+        }
+
+        .template-preview-academic-model2 .template-preview-table col.template-preview-academic-col-wide {
+            width: 11%;
+        }
+
+        .template-preview-academic-model2 .template-preview-table td,
+        .template-preview-academic-model2 .template-preview-table th {
+            padding: 3px 3px;
+            font-size: 0.62rem;
+        }
+
+        .template-preview-academic-model2 .template-preview-table th.template-preview-academic-subject {
+            font-size: 0.92rem;
+        }
+
+        .template-preview-academic-model2 .template-preview-table th.template-preview-academic-main {
+            font-size: 0.58rem;
+            line-height: 1.06;
+        }
+
+        .template-preview-academic-model2 .template-preview-table th.template-preview-academic-mark {
+            font-size: 0.66rem;
+        }
+
+        .template-preview-academic-model2 .template-preview-table td:first-child {
+            text-align: left;
+        }
+
+        .template-preview-academic-model2 .template-preview-academic-summary-label,
+        .template-preview-academic-model2 .template-preview-academic-summary-value {
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .template-preview-academic-model2 .template-preview-academic-summary-row td {
+            padding: 3px 5px;
+            font-size: 0.61rem;
+            line-height: 1.08;
+            background: #fff;
+            vertical-align: middle;
+        }
+
+        .template-preview-academic-model2 .template-preview-academic-summary-label--left {
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        .template-preview-academic-model3 .template-preview-table col.template-preview-subject-col {
+            width: 40%;
+        }
+
+        .template-preview-academic-model3 .template-preview-table col.template-preview-academic-col-small {
+            width: 5.5%;
+        }
+
+        .template-preview-academic-model3 .template-preview-table col.template-preview-academic-col-medium {
+            width: 8%;
+        }
+
+        .template-preview-academic-model3 .template-preview-table col.template-preview-academic-col-wide {
+            width: 8.5%;
+        }
+
+        .template-preview-academic-model3 .template-preview-table td,
+        .template-preview-academic-model3 .template-preview-table th {
+            padding: 3px 3px;
+            font-size: 0.62rem;
+        }
+
+        .template-preview-academic-model3 .template-preview-table th.template-preview-academic-subject {
+            font-size: 0.92rem;
+        }
+
+        .template-preview-academic-model3 .template-preview-table th.template-preview-academic-main {
+            font-size: 0.58rem;
+            line-height: 1.06;
+        }
+
+        .template-preview-academic-model3 .template-preview-table th.template-preview-academic-mark {
+            font-size: 0.66rem;
+        }
+
+        .template-preview-academic-model3 .template-preview-table td:first-child {
+            text-align: left;
+        }
+
+        .template-preview-academic-model4 .template-preview-table td,
+        .template-preview-academic-model4 .template-preview-table th {
+            padding: 3px 3px;
+            font-size: 0.62rem;
+        }
+
+        .template-preview-academic-model4 .template-preview-table th.template-preview-academic-subject {
+            font-size: 0.92rem;
+        }
+
+        .template-preview-academic-model4 .template-preview-table th.template-preview-academic-main {
+            font-size: 0.58rem;
+            line-height: 1.06;
+        }
+
+        .template-preview-academic-model4 .template-preview-table th.template-preview-academic-mark {
+            font-size: 0.66rem;
+        }
+
+        .template-preview-academic-model4 .template-preview-table td:first-child {
+            text-align: left;
+        }
+
+        .template-preview-academic-model5 .template-preview-table td,
+        .template-preview-academic-model5 .template-preview-table th {
+            padding: 3px 3px;
+            font-size: 0.62rem;
+        }
+
+        .template-preview-academic-model5 .template-preview-table th.template-preview-academic-subject {
+            font-size: 0.92rem;
+        }
+
+        .template-preview-academic-model5 .template-preview-table th.template-preview-academic-main {
+            font-size: 0.58rem;
+            line-height: 1.06;
+        }
+
+        .template-preview-academic-model5 .template-preview-table td:first-child {
+            text-align: left;
+        }
+
+        .template-preview-academic-model6 .template-preview-table td,
+        .template-preview-academic-model6 .template-preview-table th {
+            padding: 3px 3px;
+            font-size: 0.62rem;
+        }
+
+        .template-preview-academic-model6 .template-preview-table th.template-preview-academic-subject {
+            font-size: 0.92rem;
+        }
+
+        .template-preview-academic-model6 .template-preview-table th.template-preview-academic-main {
+            font-size: 0.58rem;
+            line-height: 1.06;
+        }
+
+        .template-preview-academic-model6 .template-preview-table th.template-preview-academic-mark {
+            font-size: 0.66rem;
+        }
+
+        .template-preview-academic-model6 .template-preview-table td:first-child {
+            text-align: left;
+        }
+
+        .template-preview-academic-model7 .template-preview-table td,
+        .template-preview-academic-model7 .template-preview-table th {
+            padding: 3px 3px;
+            font-size: 0.62rem;
+        }
+
+        .template-preview-academic-model7 .template-preview-table th.template-preview-academic-subject {
+            font-size: 0.92rem;
+        }
+
+        .template-preview-academic-model7 .template-preview-table th.template-preview-academic-main {
+            font-size: 0.58rem;
+            line-height: 1.06;
+        }
+
+        .template-preview-academic-model7 .template-preview-table th.template-preview-academic-mark {
+            font-size: 0.58rem;
+        }
+
+        .template-preview-academic-model7 .template-preview-table td:first-child {
+            text-align: left;
+        }
+
+        .template-preview-academic-model8 .template-preview-table td,
+        .template-preview-academic-model8 .template-preview-table th {
+            padding: 3px 3px;
+            font-size: 0.62rem;
+        }
+
+        .template-preview-academic-model8 .template-preview-table th.template-preview-academic-subject {
+            font-size: 0.92rem;
+        }
+
+        .template-preview-academic-model8 .template-preview-table th.template-preview-academic-main {
+            font-size: 0.57rem;
+            line-height: 1.04;
+        }
+
+        .template-preview-academic-model8 .template-preview-table th.template-preview-academic-mark {
+            font-size: 0.6rem;
+        }
+
+        .template-preview-academic-model8 .template-preview-table td:first-child {
+            text-align: left;
+        }
+
+        .template-preview-grade .template-preview-table {
+            font-size: 0.7rem;
+        }
+
+        .template-preview-grade .template-preview-table th,
+        .template-preview-grade .template-preview-table td {
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .template-preview-skills {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 10px;
+        }
+
+        .template-preview-skills .template-preview-table {
+            font-size: 0.61rem;
+        }
+
+        .template-preview-skills-table col.template-preview-skill-col {
+            width: 56%;
+        }
+
+        .template-preview-skills-table col.template-preview-score-col {
+            width: 11%;
+        }
+
+        .template-preview-skills-table th,
+        .template-preview-skills-table td {
+            line-height: 1.15;
+        }
+
+        .template-preview-skills-table td:first-child,
+        .template-preview-skills-table th:first-child {
+            text-align: left;
+            word-break: normal;
+            overflow-wrap: anywhere;
+            hyphens: auto;
+        }
+
+        .template-preview-skills .template-preview-table td:last-child,
+        .template-preview-skills .template-preview-table th:last-child,
+        .template-preview-skills .template-preview-table td:nth-last-child(2),
+        .template-preview-skills .template-preview-table th:nth-last-child(2),
+        .template-preview-skills .template-preview-table td:nth-last-child(3),
+        .template-preview-skills .template-preview-table th:nth-last-child(3),
+        .template-preview-skills .template-preview-table td:nth-last-child(4),
+        .template-preview-skills .template-preview-table th:nth-last-child(4) {
+            text-align: center;
+        }
+
+        .template-preview-rating-key {
+            width: 270px;
+            margin-top: 10px;
+            margin-left: 0;
+        }
+
+        .template-preview-rating-key th,
+        .template-preview-rating-key td {
+            padding: 3px 8px;
+        }
+
+        .template-preview-rating-key th {
+            text-align: center;
+            font-size: 0.7rem;
+        }
+
+        .template-preview-rating-key td {
+            text-align: left;
+            font-size: 0.68rem;
+            font-weight: 700;
+            line-height: 1.05;
+        }
+
+        .template-preview-comments {
+            margin-top: 14px;
+        }
+
+        .template-preview-comments-box {
+            border: 2px solid #d4147a;
+            padding: 10px 12px 0;
+        }
+
+        .template-preview-comment-row {
+            display: grid;
+            grid-template-columns: 170px minmax(0, 1fr) 64px 128px;
+            gap: 8px;
+            align-items: center;
+            min-height: 48px;
+            font-size: 0.68rem;
+            color: #111827;
+        }
+
+        .template-preview-comment-row + .template-preview-comment-row {
+            border-top: 1px solid #d1d5db;
+        }
+
+        .template-preview-comment-label {
+            font-weight: 800;
+        }
+
+        .template-preview-sign-line {
+            border-bottom: 2px solid #9ca3af;
+            height: 16px;
+        }
+
+        .template-preview-comment-date {
+            margin: 6px 0 10px;
+            font-size: 0.66rem;
+            font-weight: 700;
+        }
+
+        .template-preview-footer-note {
+            margin-top: 10px;
+            font-size: 0.6rem;
+            text-align: center;
+            color: #6b7280;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .template-editor-preview-footer {
+            display: flex;
+            justify-content: center;
+            flex: 0 0 auto;
+            margin-top: 8px;
+            padding-bottom: 0;
+        }
+
+        .template-editor-settings-list {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            padding-right: 6px;
+        }
+
+        .template-editor-settings-scroll {
+            height: 100%;
+            max-height: 100%;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #8d9299 #f1f3f5;
+        }
+
+        .template-editor-settings-scroll::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .template-editor-settings-scroll::-webkit-scrollbar-track {
+            background: #f1f3f5;
+        }
+
+        .template-editor-settings-scroll::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 999px;
+            border: 2px solid #f1f3f5;
+        }
+
+        .template-editor-setting-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .template-editor-setting-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .template-editor-setting-label {
+            font-size: 0.8rem;
+            color: #111827;
+            line-height: 1.25;
+        }
+
+        .template-editor-setting-edit {
+            min-width: 94px;
+            height: 29px;
+            border: none;
+            background: #7664eb;
+            color: #fff;
+            font-size: 0.74rem;
+            font-weight: 500;
+        }
+
+        .template-editor-setting-color {
+            width: 88px;
+            height: 29px;
+            border: 2px solid #f3f4f6;
+            box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.14);
+        }
+
+        .template-editor-setting-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .template-editor-setting-check:last-child {
+            margin-bottom: 0;
+        }
+
+        .template-editor-setting-check input {
+            width: 18px;
+            height: 18px;
+            accent-color: #0b69c7;
+            margin: 0;
+        }
+
+        .template-editor-setting-check span {
+            font-size: 0.78rem;
+            color: #111827;
+            line-height: 1.25;
+        }
+
+        @media (max-width: 1200px) {
+            .template-editor-canvas {
+                width: 1280px;
+                height: 610px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .template-editor-canvas {
+                width: 920px;
+                height: 820px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+                <section class="template-editor-shell">
+                    <div class="template-editor-fitbox" id="templateEditorFitbox">
+                        <div class="template-editor-canvas" id="templateEditorCanvas">
+                            <button type="button" class="template-editor-close" aria-label="Close">x</button>
+                            <h2 class="template-editor-title">Template Editor</h2>
+
+                            <div class="template-editor-workspace">
+                                <section class="template-editor-left">
+                                    <div class="template-editor-topline">
+                                        <label for="templateSelect">Template</label>
+                                        <select id="templateSelect" class="template-editor-select">
+                                            {% for option in template_options %}
+                                            <option{% if option == selected_template %} selected{% endif %}>{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" class="template-editor-delete" aria-label="Delete template">x</button>
+                                    </div>
+
+                            <div class="template-editor-tabs">
+                                <a href="?tab=layout" class="template-editor-tab{% if active_tab == 'layout' %} is-active{% else %} is-passive{% endif %}">Layout Settings</a>
+                                <a href="?tab=other" class="template-editor-tab{% if active_tab == 'other' %} is-active{% else %} is-passive{% endif %}">Other Settings</a>
+                            </div>
+
+                            <div class="template-editor-panel">
+                                <div class="template-editor-panel-body">
+                                    {% if active_tab == 'layout' %}
+                                    <div class="template-editor-layout-list">
+                                        <div class="template-editor-layout-scroll">
+                                            {% for section in layout_sections %}
+                                            <div class="template-editor-row">
+                                                <div class="template-editor-section-title">{{ section.title }}</div>
+                                                <div class="template-editor-row-controls">
+                                                <select class="template-editor-model" data-section-key="{{ section.key }}"{% if not section.has_available_model %} disabled{% endif %}>
+                                                    {% for model in section.models %}
+                                                    <option value="{{ model.key }}" data-can-customize="{% if model.can_customize %}true{% else %}false{% endif %}" data-customize-mode="{{ model.customize_mode }}"{% if model.key == section.selected_model %} selected{% endif %}{% if not model.available %} disabled{% endif %}>{{ model.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                                {% if section.can_customize %}
+                                                <button type="button" class="template-editor-customize" data-section-key="{{ section.key }}" data-customize-mode="{{ section.customize_mode }}"{% if not section.has_available_model %} disabled{% endif %}>Customize</button>
+                                                {% else %}
+                                                <button type="button" class="template-editor-customize{% if section.key == 'section_1' or section.key == 'section_2' or section.key == 'section_4' or section.key == 'section_6' %} is-hidden{% endif %}" data-section-key="{{ section.key }}" disabled>{% if section.has_available_model %}Ready{% else %}Locked{% endif %}</button>
+                                                {% endif %}
+                                                    {% if section.show_extra_toggle %}
+                                                    <input type="checkbox" class="template-editor-toggle"{% if section.extra_enabled %} checked{% endif %}>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    <div class="template-editor-lock-note">
+                                        Only the section models already wired into the real preview are shown here, so preview switching stays isolated while we move the renderer out of the giant template.
+                                    </div>
+                                    {% else %}
+                                    <div class="template-editor-settings-list">
+                                        <div class="template-editor-settings-scroll">
+                                            {% for setting in other_settings %}
+                                                {% if setting.type == 'check' %}
+                                                <label class="template-editor-setting-check">
+                                                    <input type="checkbox"{% if setting.checked %} checked{% endif %}>
+                                                    <span>{{ setting.label }}</span>
+                                                </label>
+                                                {% else %}
+                                                <div class="template-editor-setting-row">
+                                                    <div class="template-editor-setting-label">{{ setting.label }}</div>
+                                                    {% if setting.type == 'color' %}
+                                                    <div class="template-editor-setting-color" style="background: {{ setting.value }};"></div>
+                                                    {% else %}
+                                                    <button type="button" class="template-editor-setting-edit">Edit</button>
+                                                    {% endif %}
+                                                </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                                    <div class="template-editor-actions">
+                                        <a href="#" class="template-editor-action template-editor-action-save">
+                                            <span class="template-editor-action-icon">S</span>
+                                            <span>Save Changes</span>
+                                        </a>
+                                        <a href="#" class="template-editor-action template-editor-action-new">
+                                            <span class="template-editor-action-icon">N</span>
+                                            <span>Save as New Template</span>
+                                        </a>
+                                    </div>
+                                </section>
+
+                                <section class="template-editor-right">
+                                    <div class="template-editor-preview-tools">
+                                        <button type="button" class="template-editor-preview-tool" aria-label="Fit width">&harr;</button>
+                                        <button type="button" class="template-editor-preview-tool" aria-label="Fit height">&varr;</button>
+                                    </div>
+                                    <div class="template-editor-preview-stage{% if not preview_enabled %} is-disabled{% endif %}" id="previewTop">
+                                        {% if preview_enabled %}
+                                        <div class="template-preview-sheet">
+                                            {% include "accounts/template_editor/_preview_root.html" %}
+                                        </div>
+                                        {% else %}
+                                        <div class="template-editor-preview-empty">
+                                            <div class="template-editor-preview-empty-badge">Preview Disabled</div>
+                                            <div class="template-editor-preview-empty-title">Waiting for exact model screenshots</div>
+                                            <div class="template-editor-preview-empty-text">{{ preview_disabled_reason }}</div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="template-editor-preview-footer">
+                                        <a href="#previewTop" class="template-editor-action template-editor-action-preview{% if not preview_enabled %} is-disabled{% endif %}"{% if not preview_enabled %} aria-disabled="true" tabindex="-1"{% endif %}>
+                                            <span class="template-editor-action-icon">P</span>
+                                            <span>{% if preview_enabled %}Preview{% else %}Preview Disabled{% endif %}</span>
+                                        </a>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <div class="template-editor-modal-backdrop" id="section1Model3ModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal" role="dialog" aria-modal="true" aria-labelledby="section1Model3ModalTitle">
+                        <button type="button" class="template-editor-modal-close" id="section1Model3ModalClose">x</button>
+                        <h2 class="template-editor-modal-title" id="section1Model3ModalTitle">{{ section_1_model_3_customize.title }}</h2>
+                        <div class="template-editor-modal-field">
+                            <label for="section1Model3SchoolName">School Name</label>
+                            <input id="section1Model3SchoolName" class="template-editor-modal-input" type="text" value="{{ section_1_model_3_customize.school_name }}">
+                        </div>
+                        <div class="template-editor-modal-field">
+                            <label for="section1Model3OtherDetails">Other Details</label>
+                            <textarea id="section1Model3OtherDetails" class="template-editor-modal-textarea">{{ section_1_model_3_customize.other_details }}</textarea>
+                        </div>
+                        <div class="template-editor-modal-actions">
+                            <button type="button" class="template-editor-modal-save" id="section1Model3ModalSave">Save</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="template-editor-modal-backdrop" id="section2CustomizeModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal" role="dialog" aria-modal="true" aria-labelledby="section2CustomizeModalTitle">
+                        <button type="button" class="template-editor-modal-close" id="section2CustomizeModalClose">x</button>
+                        <h2 class="template-editor-modal-title" id="section2CustomizeModalTitle">{{ section_2_customize.title }}</h2>
+                        <div class="template-editor-student-grid">
+                            <div class="template-editor-student-row">
+                                <div class="template-editor-student-label">Name</div>
+                                <label class="template-editor-student-toggle" for="section2FieldName">
+                                    <input id="section2FieldName" type="checkbox" checked>
+                                    <span>Show this field</span>
+                                </label>
+                            </div>
+                            <div class="template-editor-student-row">
+                                <div class="template-editor-student-label">Date Of Birth</div>
+                                <label class="template-editor-student-toggle" for="section2FieldDateOfBirth">
+                                    <input id="section2FieldDateOfBirth" type="checkbox" checked>
+                                    <span>Show this field</span>
+                                </label>
+                            </div>
+                            <div class="template-editor-student-row">
+                                <div class="template-editor-student-label">Sex</div>
+                                <label class="template-editor-student-toggle" for="section2FieldSex">
+                                    <input id="section2FieldSex" type="checkbox" checked>
+                                    <span>Show this field</span>
+                                </label>
+                            </div>
+                            <div class="template-editor-student-row">
+                                <div class="template-editor-student-label">Class</div>
+                                <label class="template-editor-student-toggle" for="section2FieldClassName">
+                                    <input id="section2FieldClassName" type="checkbox" checked>
+                                    <span>Show this field</span>
+                                </label>
+                            </div>
+                            <div class="template-editor-student-row">
+                                <div class="template-editor-student-label">Admission No.</div>
+                                <label class="template-editor-student-toggle" for="section2FieldAdmissionNo">
+                                    <input id="section2FieldAdmissionNo" type="checkbox" checked>
+                                    <span>Show this field</span>
+                                </label>
+                            </div>
+                        </div>
+                        <p class="template-editor-student-note">Uncheck a field to remove it from the current student-details template. Use Reset to restore the full default set.</p>
+                        <div class="template-editor-student-actions">
+                            <button type="button" class="template-editor-modal-save" id="section2CustomizeModalSave">OK</button>
+                            <button type="button" class="template-editor-modal-reset" id="section2CustomizeModalReset">Reset</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="template-editor-modal-backdrop" id="section3CustomizeModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal template-editor-headers-modal" role="dialog" aria-modal="true" aria-labelledby="section3CustomizeModalTitle">
+                        <button type="button" class="template-editor-modal-close" id="section3CustomizeModalClose">x</button>
+                        <h2 class="template-editor-modal-title" id="section3CustomizeModalTitle">
+                            <span data-section3-title-main>{{ section_3_customize.title }}</span><span class="template-editor-modal-title-subtitle" data-section3-title-subtitle hidden></span>
+                        </h2>
+                        <div class="template-editor-headers-grid">
+                            <div class="template-editor-headers-head">
+                                <div class="template-editor-headers-cell template-editor-headers-visibility">Visibility</div>
+                                <div class="template-editor-headers-cell">Header</div>
+                                <div class="template-editor-headers-cell">Score Obtainable</div>
+                                <div class="template-editor-headers-cell">Columns</div>
+                            </div>
+                            {% for header in section_3_customize.headers %}
+                                <div class="template-editor-headers-row" data-s3-row="{{ header.key }}" data-s3-models="{{ header.models|join:',' }}">
+                                    <label class="template-editor-headers-cell template-editor-headers-visibility" for="section3Header{{ forloop.counter }}">
+                                        <input id="section3Header{{ forloop.counter }}" type="checkbox" data-s3-toggle="{{ header.key }}">
+                                    </label>
+                                    <div class="template-editor-headers-cell">{{ header.label }}</div>
+                                    <div class="template-editor-headers-cell">
+                                        {% if header.score_obtainable %}
+                                            <input
+                                                class="template-editor-headers-input"
+                                                type="number"
+                                                min="0"
+                                                step="1"
+                                                value="{{ header.score_obtainable }}"
+                                                data-s3-score-input="{{ header.key }}"
+                                            >
+                                        {% else %}
+                                            <span class="template-editor-headers-placeholder">--</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="template-editor-headers-cell">
+                                        {% if header.columns %}
+                                            <input
+                                                class="template-editor-headers-input"
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                value="{{ header.columns }}"
+                                                data-s3-columns-input="{{ header.key }}"
+                                            >
+                                        {% else %}
+                                            <span class="template-editor-headers-placeholder">--</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="template-editor-headers-actions" id="section3CustomizeModalActions">
+                            <button type="button" class="template-editor-headers-grading" id="section3CustomizeModalGrading" hidden>Grading</button>
+                            <div class="template-editor-headers-actions-main">
+                            <button type="button" class="template-editor-modal-save" id="section3CustomizeModalSave">OK</button>
+                            <div class="template-editor-headers-move" aria-hidden="true">
+                                <button type="button" tabindex="-1">↑ Move Up</button>
+                                <button type="button" tabindex="-1">↓ Move Down</button>
+                            </div>
+                            <button type="button" class="template-editor-modal-reset" id="section3CustomizeModalReset">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="template-editor-modal-backdrop" id="section3GradingModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal template-editor-grading-modal" role="dialog" aria-modal="true" aria-labelledby="section3GradingModalTitle">
+                        <button type="button" class="template-editor-modal-close" id="section3GradingModalClose">x</button>
+                        <h2 class="template-editor-modal-title" id="section3GradingModalTitle">Grading</h2>
+                        <div class="template-editor-grading-body">
+                            <div class="template-editor-grading-tabs">
+                                <button type="button" class="template-editor-grading-tab" data-s3-grading-tab="cumulative">Cummulative</button>
+                                <button type="button" class="template-editor-grading-tab is-inactive" data-s3-grading-tab="average">Average Percentage</button>
+                                <button type="button" class="template-editor-grading-tab is-inactive" data-s3-grading-tab="terms">&nbsp;</button>
+                            </div>
+                            <div class="template-editor-grading-panel is-active" data-s3-grading-panel="cumulative">
+                                <div class="template-editor-grading-options">
+                                    <label class="template-editor-grading-option" for="section3GradingOffered">
+                                        <input id="section3GradingOffered" type="radio" name="section3GradingAverage" checked>
+                                        <span>Grade Average Percentage by number of subjects offered</span>
+                                    </label>
+                                    <label class="template-editor-grading-option" for="section3GradingRegistered">
+                                        <input id="section3GradingRegistered" type="radio" name="section3GradingAverage">
+                                        <span>Grade Average Percentage by number of subjects registered</span>
+                                    </label>
+                                    <label class="template-editor-grading-option" for="section3GradingAtLeast">
+                                        <input id="section3GradingAtLeast" type="radio" name="section3GradingAverage">
+                                        <span>Grade Average Percentage by at least</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="template-editor-grading-panel" data-s3-grading-panel="average">
+                                <div class="template-editor-grading-term">
+                                    <h3 class="template-editor-grading-term-title">Second Term</h3>
+                                    <div class="template-editor-grading-checkboxes">
+                                        <label class="template-editor-grading-checkbox" for="section3GradingSecondSubject">
+                                            <input id="section3GradingSecondSubject" type="checkbox">
+                                            <span>Use Term Scores for Subject grading</span>
+                                        </label>
+                                        <label class="template-editor-grading-checkbox" for="section3GradingSecondAverage">
+                                            <input id="section3GradingSecondAverage" type="checkbox">
+                                            <span>Use Term Scores for Average Percentage</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="template-editor-grading-term">
+                                    <h3 class="template-editor-grading-term-title">Third Term</h3>
+                                    <div class="template-editor-grading-checkboxes">
+                                        <label class="template-editor-grading-checkbox" for="section3GradingThirdSubject">
+                                            <input id="section3GradingThirdSubject" type="checkbox">
+                                            <span>Use Term Scores for Subject grading</span>
+                                        </label>
+                                        <label class="template-editor-grading-checkbox" for="section3GradingThirdAverage">
+                                            <input id="section3GradingThirdAverage" type="checkbox">
+                                            <span>Use Term Scores for Average Percentage</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="template-editor-grading-panel" data-s3-grading-panel="terms">
+                                <div class="template-editor-grading-options">
+                                    <label class="template-editor-grading-option" for="section3AverageOffered">
+                                        <input id="section3AverageOffered" type="radio" name="section3AverageMode" checked>
+                                        <span>Grade Average Percentage by number of subjects offered</span>
+                                    </label>
+                                    <label class="template-editor-grading-option" for="section3AverageRegistered">
+                                        <input id="section3AverageRegistered" type="radio" name="section3AverageMode">
+                                        <span>Grade Average Percentage by number of subjects registered</span>
+                                    </label>
+                                    <label class="template-editor-grading-option" for="section3AverageAtLeast">
+                                        <input id="section3AverageAtLeast" type="radio" name="section3AverageMode">
+                                        <span>Grade Average Percentage by at least</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="template-editor-grading-actions">
+                            <button type="button" class="template-editor-modal-save" id="section3GradingModalSave">OK</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="template-editor-modal-backdrop" id="section3DivisionModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal template-editor-division-modal" role="dialog" aria-modal="true" aria-labelledby="section3DivisionModalTitle">
+                        <button type="button" class="template-editor-modal-close" id="section3DivisionModalClose">x</button>
+                        <h2 class="template-editor-modal-title" id="section3DivisionModalTitle">Division</h2>
+                        <div class="template-editor-division-grid">
+                            <div class="template-editor-division-row template-editor-division-head">
+                                <div class="template-editor-division-cell"></div>
+                                <div class="template-editor-division-cell">Score Range</div>
+                                <div class="template-editor-division-cell">Division</div>
+                            </div>
+                            <div class="template-editor-division-row">
+                                <div class="template-editor-division-cell template-editor-division-selector">&gt;</div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="1-1.5"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="I"></div>
+                            </div>
+                            <div class="template-editor-division-row">
+                                <div class="template-editor-division-cell"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="1.6-2.5"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="II"></div>
+                            </div>
+                            <div class="template-editor-division-row">
+                                <div class="template-editor-division-cell"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="2.6-3.5"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="III"></div>
+                            </div>
+                            <div class="template-editor-division-row">
+                                <div class="template-editor-division-cell"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="3.6-4.5"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="IV"></div>
+                            </div>
+                            <div class="template-editor-division-row">
+                                <div class="template-editor-division-cell"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="4.6-7"></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value="V"></div>
+                            </div>
+                            <div class="template-editor-division-row">
+                                <div class="template-editor-division-cell">*</div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value=""></div>
+                                <div class="template-editor-division-cell"><input class="template-editor-division-input" type="text" value=""></div>
+                            </div>
+                        </div>
+                        <div class="template-editor-division-actions">
+                            <button type="button" class="template-editor-modal-save" id="section3DivisionModalSave">OK</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="template-editor-modal-backdrop" id="section5CustomizeModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal template-editor-skills-modal" role="dialog" aria-modal="true" aria-labelledby="section5CustomizeModalTitle">
+                        <button type="button" class="template-editor-modal-close" id="section5CustomizeModalClose">x</button>
+                        <h2 class="template-editor-modal-title template-editor-skills-title" id="section5CustomizeModalTitle">{{ section_5_customize.title }}</h2>
+                        <div class="template-editor-skills-tabs-row">
+                            <div class="template-editor-skills-tabs" id="section5CustomizeTabs"></div>
+                            <button type="button" class="template-editor-skills-tab-nav" id="section5TabPrev" aria-label="Previous section">&lsaquo;</button>
+                            <button type="button" class="template-editor-skills-tab-nav" id="section5TabNext" aria-label="Next section">&rsaquo;</button>
+                        </div>
+                        <div class="template-editor-skills-body">
+                            <div class="template-editor-skills-editor">
+                                <input id="section5CategoryName" class="template-editor-skills-input" type="text" value="">
+                                <select id="section5ItemList" class="template-editor-skills-list" size="12"></select>
+                            </div>
+                            <div class="template-editor-skills-actions">
+                                <button type="button" class="template-editor-skills-action" id="section5AddItem">Add</button>
+                                <button type="button" class="template-editor-skills-action" id="section5DeleteItem">Delete</button>
+                                <button type="button" class="template-editor-skills-action" id="section5EditItem">Edit</button>
+                                <button type="button" class="template-editor-skills-action" id="section5MoveUp">Move Up</button>
+                                <button type="button" class="template-editor-skills-action" id="section5MoveDown">Move Down</button>
+                            </div>
+                        </div>
+                        <div class="template-editor-skills-footer">
+                            <button type="button" class="template-editor-skills-keys" id="section5KeysButton">Keys to Rating</button>
+                            <button type="button" class="template-editor-skills-save" id="section5CustomizeModalSave">Save</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="template-editor-modal-backdrop" id="section5RatingModalBackdrop" aria-hidden="true">
+                    <div class="template-editor-modal template-editor-rating-modal" role="dialog" aria-modal="true" aria-labelledby="section5RatingModalTitle">
+                        <button type="button" class="template-editor-modal-close" id="section5RatingModalClose">x</button>
+                        <h2 class="template-editor-modal-title" id="section5RatingModalTitle">Keys To Rating</h2>
+                        <div class="template-editor-rating-grid" id="section5RatingGrid"></div>
+                        <div class="template-editor-rating-actions">
+                            <button type="button" class="template-editor-modal-save" id="section5RatingModalSave">OK</button>
+                        </div>
+                    </div>
+                </div>
+                {{ section_3_customize.model_configs|json_script:"section3CustomizeConfig" }}
+                {{ section_3_customize.model_meta|json_script:"section3CustomizeMeta" }}
+                {{ section_5_customize|json_script:"section5CustomizeConfig" }}
+{% endblock %}
+
+{% block extra_body %}
+    <script>
+        (function () {
+            function fitTemplateEditor() {
+                var fitbox = document.getElementById('templateEditorFitbox');
+                var canvas = document.getElementById('templateEditorCanvas');
+                var content = document.querySelector('.entry-content');
+                if (!fitbox || !canvas) {
+                    return;
+                }
+
+                canvas.style.transform = 'scale(1)';
+                var availableWidth = fitbox.clientWidth;
+                var availableHeight = content ? content.clientHeight : fitbox.clientHeight;
+                var safetyGap = 84;
+                availableHeight = Math.max(availableHeight - safetyGap, 0);
+                var baseWidth = canvas.offsetWidth;
+                var baseHeight = canvas.offsetHeight;
+                if (!availableWidth || !availableHeight || !baseWidth || !baseHeight) {
+                    return;
+                }
+
+                var scale = Math.min(availableWidth / baseWidth, availableHeight / baseHeight, 1);
+                canvas.style.transform = 'scale(' + scale + ')';
+                fitbox.style.height = Math.floor(availableHeight) + 'px';
+            }
+
+            function syncTemplatePreview() {
+                var selects = document.querySelectorAll('.template-editor-model');
+                if (!selects.length) {
+                    return;
+                }
+                var previewRoot = document.querySelector('.template-preview-report');
+
+                function getSelectedModel(sectionKey) {
+                    var select = document.querySelector('.template-editor-model[data-section-key="' + sectionKey + '"]');
+                    return select ? (select.value || '') : '';
+                }
+
+                function syncSection2ModelAvailability() {
+                    var section2Select = document.querySelector('.template-editor-model[data-section-key="section_2"]');
+                    if (!section2Select) {
+                        return;
+                    }
+
+                    var selectedSection3Model = getSelectedModel('section_3');
+                    var requiresCombinedFallback = selectedSection3Model === 'model_3';
+                    var activeValue = section2Select.value;
+
+                    Array.from(section2Select.options).forEach(function (option) {
+                        if (!option.dataset.baseDisabled) {
+                            option.dataset.baseDisabled = option.disabled ? 'true' : 'false';
+                        }
+
+                        var isConditionallyUnavailable = requiresCombinedFallback && option.value === 'model_10';
+                        var isBaseDisabled = option.dataset.baseDisabled === 'true';
+
+                        option.hidden = isConditionallyUnavailable;
+                        option.disabled = isBaseDisabled || isConditionallyUnavailable;
+                    });
+
+                    var activeOption = Array.from(section2Select.options).find(function (option) {
+                        return option.value === activeValue;
+                    });
+
+                    if (activeOption && !activeOption.disabled) {
+                        return;
+                    }
+
+                    var fallbackOption = Array.from(section2Select.options).find(function (option) {
+                        return !option.disabled;
+                    });
+
+                    if (fallbackOption) {
+                        section2Select.value = fallbackOption.value;
+                    }
+                }
+
+                function isCustomizeBlockedByPageState(sectionKey) {
+                    if (sectionKey === 'section_2' && getSelectedModel('section_3') === 'model_3') {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                syncSection2ModelAvailability();
+
+                selects.forEach(function (select) {
+                    var sectionKey = select.dataset.sectionKey;
+                    var selectedModel = select.value;
+                    var section = document.querySelector('[data-preview-section="' + sectionKey + '"]');
+                    var combinedSection = document.querySelector('[data-combined-preview="' + sectionKey + '"]');
+
+                    if (previewRoot) {
+                        previewRoot.setAttribute('data-selected-' + sectionKey.replace(/_/g, '-'), selectedModel);
+                    }
+
+                    if (section) {
+                        section.dataset.selectedModel = selectedModel;
+                        section.querySelectorAll('[data-preview-model]').forEach(function (variant) {
+                            variant.classList.toggle('is-active', variant.dataset.previewModel === selectedModel);
+                        });
+                    }
+
+                    if (combinedSection) {
+                        combinedSection.querySelectorAll('[data-preview-model]').forEach(function (variant) {
+                            variant.classList.toggle('is-active', variant.dataset.previewModel === selectedModel);
+                        });
+                    }
+
+                    var selectedOption = select.options[select.selectedIndex];
+                    var customizeButton = document.querySelector('.template-editor-customize[data-section-key="' + sectionKey + '"]');
+
+                    if (customizeButton && selectedOption) {
+                        var canCustomize = selectedOption.dataset.canCustomize === 'true';
+                        var customizeMode = selectedOption.dataset.customizeMode || '';
+                        var blockedByPageState = isCustomizeBlockedByPageState(sectionKey);
+
+                        if (blockedByPageState) {
+                            canCustomize = false;
+                        }
+
+                        customizeButton.dataset.customizeMode = customizeMode;
+                        customizeButton.disabled = !canCustomize;
+
+                        if (!canCustomize && (sectionKey === 'section_1' || sectionKey === 'section_2' || sectionKey === 'section_4' || sectionKey === 'section_6')) {
+                            customizeButton.classList.add('is-hidden');
+                        } else {
+                            customizeButton.classList.remove('is-hidden');
+                        }
+
+                        customizeButton.textContent = canCustomize ? 'Customize' : 'Ready';
+                    }
+
+                    if (sectionKey === 'section_3') {
+                        document.dispatchEvent(new CustomEvent('section3:modelchange'));
+                    }
+                });
+            }
+
+            function bindTemplateEditorControls() {
+                var selects = document.querySelectorAll('.template-editor-model');
+                selects.forEach(function (select) {
+                    select.addEventListener('change', function () {
+                        syncTemplatePreview();
+                    });
+                });
+            }
+
+            function deepClone(value) {
+                return JSON.parse(JSON.stringify(value));
+            }
+
+            function escapeHtml(value) {
+                return String(value == null ? '' : value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function bindCustomizeControls() {
+                var backdrop = document.getElementById('section1Model3ModalBackdrop');
+                var closeButton = document.getElementById('section1Model3ModalClose');
+                var saveButton = document.getElementById('section1Model3ModalSave');
+                var schoolNameInput = document.getElementById('section1Model3SchoolName');
+                var otherDetailsInput = document.getElementById('section1Model3OtherDetails');
+                var section2Backdrop = document.getElementById('section2CustomizeModalBackdrop');
+                var section2Close = document.getElementById('section2CustomizeModalClose');
+                var section2Save = document.getElementById('section2CustomizeModalSave');
+                var section2Reset = document.getElementById('section2CustomizeModalReset');
+                var section2FieldName = document.getElementById('section2FieldName');
+                var section2FieldDateOfBirth = document.getElementById('section2FieldDateOfBirth');
+                var section2FieldSex = document.getElementById('section2FieldSex');
+                var section2FieldClassName = document.getElementById('section2FieldClassName');
+                var section2FieldAdmissionNo = document.getElementById('section2FieldAdmissionNo');
+                var section3Backdrop = document.getElementById('section3CustomizeModalBackdrop');
+                var section3Close = document.getElementById('section3CustomizeModalClose');
+                var section3Save = document.getElementById('section3CustomizeModalSave');
+                var section3Reset = document.getElementById('section3CustomizeModalReset');
+                var section3Actions = document.getElementById('section3CustomizeModalActions');
+                var section3GradingButton = document.getElementById('section3CustomizeModalGrading');
+                var section3Toggles = document.querySelectorAll('[data-s3-toggle]');
+                var section3ScoreInputs = document.querySelectorAll('[data-s3-score-input]');
+                var section3ColumnsInputs = document.querySelectorAll('[data-s3-columns-input]');
+                var section3Rows = document.querySelectorAll('[data-s3-row]');
+                var section3ConfigNode = document.getElementById('section3CustomizeConfig');
+                var section3MetaNode = document.getElementById('section3CustomizeMeta');
+                var section3TitleMain = document.querySelector('[data-section3-title-main]');
+                var section3TitleSubtitle = document.querySelector('[data-section3-title-subtitle]');
+                var section3GradingBackdrop = document.getElementById('section3GradingModalBackdrop');
+                var section3GradingClose = document.getElementById('section3GradingModalClose');
+                var section3GradingSave = document.getElementById('section3GradingModalSave');
+                var section3GradingTabs = document.querySelectorAll('[data-s3-grading-tab]');
+                var section3GradingPanels = document.querySelectorAll('[data-s3-grading-panel]');
+                var section3DivisionBackdrop = document.getElementById('section3DivisionModalBackdrop');
+                var section3DivisionClose = document.getElementById('section3DivisionModalClose');
+                var section3DivisionSave = document.getElementById('section3DivisionModalSave');
+                var section5Backdrop = document.getElementById('section5CustomizeModalBackdrop');
+                var section5Close = document.getElementById('section5CustomizeModalClose');
+                var section5Save = document.getElementById('section5CustomizeModalSave');
+                var section5Tabs = document.getElementById('section5CustomizeTabs');
+                var section5TabPrev = document.getElementById('section5TabPrev');
+                var section5TabNext = document.getElementById('section5TabNext');
+                var section5CategoryName = document.getElementById('section5CategoryName');
+                var section5ItemList = document.getElementById('section5ItemList');
+                var section5AddItem = document.getElementById('section5AddItem');
+                var section5DeleteItem = document.getElementById('section5DeleteItem');
+                var section5EditItem = document.getElementById('section5EditItem');
+                var section5MoveUp = document.getElementById('section5MoveUp');
+                var section5MoveDown = document.getElementById('section5MoveDown');
+                var section5KeysButton = document.getElementById('section5KeysButton');
+                var section5RatingBackdrop = document.getElementById('section5RatingModalBackdrop');
+                var section5RatingClose = document.getElementById('section5RatingModalClose');
+                var section5RatingSave = document.getElementById('section5RatingModalSave');
+                var section5RatingGrid = document.getElementById('section5RatingGrid');
+                var section5ConfigNode = document.getElementById('section5CustomizeConfig');
+
+                var section2Defaults = {
+                    name: "{{ section_2_customize.defaults.name|escapejs }}",
+                    date_of_birth: "{{ section_2_customize.defaults.date_of_birth|escapejs }}",
+                    sex: "{{ section_2_customize.defaults.sex|escapejs }}",
+                    class_name: "{{ section_2_customize.defaults.class_name|escapejs }}",
+                    admission_no: "{{ section_2_customize.defaults.admission_no|escapejs }}"
+                };
+
+                var section2Visibility = {
+                    name: true,
+                    date_of_birth: true,
+                    sex: true,
+                    class_name: true,
+                    admission_no: true
+                };
+
+                var section3ModelConfigs = section3ConfigNode ? JSON.parse(section3ConfigNode.textContent) : {};
+                var section3ModelMeta = section3MetaNode ? JSON.parse(section3MetaNode.textContent) : {};
+                var section3State = {};
+                var section5Config = section5ConfigNode ? JSON.parse(section5ConfigNode.textContent) : {};
+                var section5State = {};
+                var section5Draft = null;
+                var section5DraftModel = '';
+                var section5Ui = {
+                    activeCategoryIndex: 0,
+                    tabStartIndex: 0,
+                    selectedItemIndex: 0
+                };
+
+                Object.keys(section3ModelConfigs).forEach(function (modelKey) {
+                    var modelConfig = section3ModelConfigs[modelKey] || {};
+                    section3State[modelKey] = {
+                        visibility: Object.assign({}, modelConfig.visibility || {}),
+                        scores: Object.assign({}, modelConfig.scores || {}),
+                        columns: Object.assign({}, modelConfig.columns || {})
+                    };
+                });
+
+                Object.keys(section5Config.models || {}).forEach(function (modelKey) {
+                    section5State[modelKey] = deepClone(section5Config.models[modelKey]);
+                });
+
+                if (!backdrop || !closeButton || !saveButton || !schoolNameInput || !otherDetailsInput || !section2Backdrop || !section2Close || !section2Save || !section2Reset || !section2FieldName || !section2FieldDateOfBirth || !section2FieldSex || !section2FieldClassName || !section2FieldAdmissionNo || !section3Backdrop || !section3Close || !section3Save || !section3Reset || !section3Toggles.length || !section3ScoreInputs.length || !section3ConfigNode) {
+                    return;
+                }
+
+                function openModal() {
+                    backdrop.classList.add('is-open');
+                    backdrop.setAttribute('aria-hidden', 'false');
+                }
+
+                function closeModal() {
+                    backdrop.classList.remove('is-open');
+                    backdrop.setAttribute('aria-hidden', 'true');
+                }
+
+                function openSection2Modal() {
+                    section2FieldName.checked = section2Visibility.name;
+                    section2FieldDateOfBirth.checked = section2Visibility.date_of_birth;
+                    section2FieldSex.checked = section2Visibility.sex;
+                    section2FieldClassName.checked = section2Visibility.class_name;
+                    section2FieldAdmissionNo.checked = section2Visibility.admission_no;
+                    section2Backdrop.classList.add('is-open');
+                    section2Backdrop.setAttribute('aria-hidden', 'false');
+                }
+
+                function closeSection2Modal() {
+                    section2Backdrop.classList.remove('is-open');
+                    section2Backdrop.setAttribute('aria-hidden', 'true');
+                }
+
+                function getCurrentSection3Model() {
+                    var select = document.querySelector('.template-editor-model[data-section-key="section_3"]');
+                    return select ? (select.value || 'model_1') : 'model_1';
+                }
+
+                function getSection3ActiveState() {
+                    var currentModel = getCurrentSection3Model();
+                    if (!section3State[currentModel]) {
+                        section3State[currentModel] = { visibility: {}, scores: {}, columns: {} };
+                    }
+                    return section3State[currentModel];
+                }
+
+                function getSection3ActiveVariant() {
+                    if (getCurrentSection3Model() === 'model_3') {
+                        var combinedSection = document.querySelector('[data-combined-preview="section_3"]');
+                        return combinedSection ? combinedSection.querySelector('.template-preview-model.is-active') : null;
+                    }
+
+                    var section = document.querySelector('.template-preview-section--section_3');
+                    return section ? section.querySelector('.template-preview-model.is-active') : null;
+                }
+
+                function openSection3Modal() {
+                    var currentModel = getCurrentSection3Model();
+                    var activeState = getSection3ActiveState();
+                    var modelMeta = section3ModelMeta[currentModel] || {};
+
+                    if (section3TitleMain) {
+                        section3TitleMain.textContent = "{{ section_3_customize.title|escapejs }}";
+                    }
+                    if (section3TitleSubtitle) {
+                        if (modelMeta.subtitle) {
+                            section3TitleSubtitle.textContent = '(' + modelMeta.subtitle + ')';
+                            section3TitleSubtitle.hidden = false;
+                        } else {
+                            section3TitleSubtitle.textContent = '';
+                            section3TitleSubtitle.hidden = true;
+                        }
+                    }
+
+                    if (section3GradingButton) {
+                        var showGradingButton = !!modelMeta.show_grading_button;
+                        section3GradingButton.hidden = !showGradingButton;
+                        section3GradingButton.textContent = modelMeta.grading_button_label || 'Grading';
+                        section3GradingButton.dataset.gradingModal = modelMeta.grading_modal || 'grading';
+                        if (section3Actions) {
+                            section3Actions.classList.toggle('is-with-grading', showGradingButton);
+                        }
+                    }
+
+                    section3Rows.forEach(function (row) {
+                        var supportedModels = (row.dataset.s3Models || '').split(',').filter(Boolean);
+                        row.style.display = supportedModels.indexOf(currentModel) === -1 ? 'none' : '';
+                    });
+
+                    section3Toggles.forEach(function (toggle) {
+                        toggle.checked = !!activeState.visibility[toggle.dataset.s3Toggle];
+                    });
+                    section3ScoreInputs.forEach(function (input) {
+                        input.value = activeState.scores[input.dataset.s3ScoreInput] || '';
+                    });
+                    section3ColumnsInputs.forEach(function (input) {
+                        input.value = activeState.columns[input.dataset.s3ColumnsInput] || '';
+                    });
+                    section3Backdrop.classList.add('is-open');
+                    section3Backdrop.setAttribute('aria-hidden', 'false');
+                }
+
+                function closeSection3Modal() {
+                    section3Backdrop.classList.remove('is-open');
+                    section3Backdrop.setAttribute('aria-hidden', 'true');
+                    closeSection3GradingModal();
+                    closeSection3DivisionModal();
+                }
+
+                function openSection3GradingModal() {
+                    if (!section3GradingBackdrop) {
+                        return;
+                    }
+
+                    section3GradingBackdrop.classList.add('is-open');
+                    section3GradingBackdrop.setAttribute('aria-hidden', 'false');
+                }
+
+                function closeSection3GradingModal() {
+                    if (!section3GradingBackdrop) {
+                        return;
+                    }
+
+                    section3GradingBackdrop.classList.remove('is-open');
+                    section3GradingBackdrop.setAttribute('aria-hidden', 'true');
+                }
+
+                function openSection3DivisionModal() {
+                    if (!section3DivisionBackdrop) {
+                        return;
+                    }
+
+                    section3DivisionBackdrop.classList.add('is-open');
+                    section3DivisionBackdrop.setAttribute('aria-hidden', 'false');
+                }
+
+                function closeSection3DivisionModal() {
+                    if (!section3DivisionBackdrop) {
+                        return;
+                    }
+
+                    section3DivisionBackdrop.classList.remove('is-open');
+                    section3DivisionBackdrop.setAttribute('aria-hidden', 'true');
+                }
+
+                function openSection3ActionModal() {
+                    if (!section3GradingButton) {
+                        return;
+                    }
+
+                    if (section3GradingButton.dataset.gradingModal === 'division') {
+                        openSection3DivisionModal();
+                        return;
+                    }
+
+                    openSection3GradingModal();
+                }
+
+                function showSection3GradingPanel(panelKey) {
+                    section3GradingTabs.forEach(function (tab) {
+                        tab.classList.toggle('is-inactive', tab.dataset.s3GradingTab !== panelKey);
+                    });
+                    section3GradingPanels.forEach(function (panel) {
+                        panel.classList.toggle('is-active', panel.dataset.s3GradingPanel === panelKey);
+                    });
+                }
+
+                function updatePreview() {
+                    var schoolNameTarget = document.querySelector('[data-s1m3-school-name]');
+                    var detailsTarget = document.querySelector('[data-s1m3-other-details]');
+
+                    if (schoolNameTarget) {
+                        schoolNameTarget.textContent = schoolNameInput.value;
+                    }
+
+                    if (detailsTarget) {
+                        detailsTarget.innerHTML = otherDetailsInput.value
+                            .split(/\r?\n/)
+                            .map(escapeHtml)
+                            .join('<br>');
+                    }
+                }
+
+                function setSection2FieldState(fieldKey, value, visible) {
+                    document.querySelectorAll('[data-s2-value="' + fieldKey + '"]').forEach(function (node) {
+                        node.textContent = value;
+                    });
+
+                    document.querySelectorAll('[data-s2-row="' + fieldKey + '"]').forEach(function (row) {
+                        row.style.display = visible ? '' : 'none';
+                    });
+                }
+
+                function updateSection2Preview() {
+                    setSection2FieldState('name', section2Defaults.name, section2Visibility.name);
+                    setSection2FieldState('date_of_birth', section2Defaults.date_of_birth, section2Visibility.date_of_birth);
+                    setSection2FieldState('sex', section2Defaults.sex, section2Visibility.sex);
+                    setSection2FieldState('class_name', section2Defaults.class_name, section2Visibility.class_name);
+                    setSection2FieldState('admission_no', section2Defaults.admission_no, section2Visibility.admission_no);
+                }
+
+                function getCurrentSection5Model() {
+                    var select = document.querySelector('.template-editor-model[data-section-key="section_5"]');
+                    return select ? (select.value || 'model_3') : 'model_3';
+                }
+
+                function getSection5ModelState(modelKey) {
+                    return section5State[modelKey] || null;
+                }
+
+                function getSection5WorkingState() {
+                    return section5Draft;
+                }
+
+                function getSection5Variant(modelKey) {
+                    var section = document.querySelector('.template-preview-section--section_5');
+                    return section ? section.querySelector('[data-preview-model="' + modelKey + '"]') : null;
+                }
+
+                function renderSection5ScoreCells(scaleLength, value) {
+                    var cells = '';
+                    for (var index = 1; index <= scaleLength; index += 1) {
+                        cells += '<td style="text-align: center;">' + (index === value ? '&check;' : '') + '</td>';
+                    }
+                    return cells;
+                }
+
+                function renderSection5RatingRows(ratings, inline) {
+                    return ratings.map(function (rating) {
+                        var prefix = rating.value + ' - ';
+                        var cellStyle = inline ? ' style="text-align: center;"' : '';
+                        return '<tr><td' + cellStyle + '>' + escapeHtml(prefix + rating.label) + '</td></tr>';
+                    }).join('');
+                }
+
+                function renderSection5Model1(modelState) {
+                    var categories = modelState.categories || [];
+                    var ratings = modelState.ratings || [];
+                    var leftCategory = categories[0] || { label: 'AFFECTIVE TRAITS', items: [] };
+                    var rightCategory = categories[1] || { label: 'PSYCHOMOTOR SKILLS', items: [] };
+
+                    return [
+                        '<div class="template-preview-skills" style="grid-template-columns: minmax(0, 1fr) 78px minmax(0, 1fr); align-items: start;">',
+                        '<table class="template-preview-table template-preview-skills-table">',
+                        '<colgroup>',
+                        '<col style="width: 68%;">',
+                        '<col style="width: 6.4%;">'.repeat(Math.max(ratings.length, 1)),
+                        '</colgroup>',
+                        '<tr><th colspan="' + (ratings.length + 1) + '">' + escapeHtml(leftCategory.label) + '</th></tr>',
+                        '<tr><th>Trait</th>' + ratings.map(function (rating) { return '<th style="text-align: center;">' + escapeHtml(rating.value) + '</th>'; }).join('') + '</tr>',
+                        (leftCategory.items || []).map(function (item) {
+                            return '<tr><td>' + escapeHtml(item.label) + '</td>' + renderSection5ScoreCells(ratings.length, item.rating || 1) + '</tr>';
+                        }).join(''),
+                        '</table>',
+                        '<div style="display: flex; align-items: center; justify-content: center; padding-top: 92px;"><div style="width: 62px; height: 62px; border: 2px solid #c59b63; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 700;">X</div></div>',
+                        '<div style="display: grid; gap: 12px;">',
+                        '<table class="template-preview-table template-preview-skills-table">',
+                        '<colgroup>',
+                        '<col style="width: 68%;">',
+                        '<col style="width: 6.4%;">'.repeat(Math.max(ratings.length, 1)),
+                        '</colgroup>',
+                        '<tr><th colspan="' + (ratings.length + 1) + '">' + escapeHtml(rightCategory.label) + '</th></tr>',
+                        '<tr><th>Skill</th>' + ratings.map(function (rating) { return '<th style="text-align: center;">' + escapeHtml(rating.value) + '</th>'; }).join('') + '</tr>',
+                        (rightCategory.items || []).map(function (item) {
+                            return '<tr><td>' + escapeHtml(item.label) + '</td>' + renderSection5ScoreCells(ratings.length, item.rating || 1) + '</tr>';
+                        }).join(''),
+                        '</table>',
+                        '<table class="template-preview-table template-preview-rating-key" style="width: 100%; margin-top: 0;">',
+                        '<tr><th>' + escapeHtml(modelState.rating_title || 'Keys To Rating') + '</th></tr>',
+                        renderSection5RatingRows(ratings, false),
+                        '</table>',
+                        '</div>',
+                        '</div>'
+                    ].join('');
+                }
+
+                function renderSection5Model2(modelState) {
+                    var categories = modelState.categories || [];
+                    var ratings = modelState.ratings || [];
+                    var maxRows = categories.reduce(function (count, category) {
+                        return Math.max(count, (category.items || []).length);
+                    }, 0);
+
+                    return [
+                        '<div class="template-preview-skills" style="row-gap: 8px;">',
+                        '<table class="template-preview-table" style="grid-column: 1 / -1; font-size: 0.68rem;">',
+                        '<tr><th colspan="8">Skills Development and Behaviourial Attributes</th></tr>',
+                        '</table>',
+                        '<table class="template-preview-table template-preview-skills-table" style="grid-column: 1 / -1;">',
+                        '<colgroup>',
+                        '<col style="width: 21%;">',
+                        '<col style="width: 6%;">',
+                        '<col style="width: 21%;">',
+                        '<col style="width: 6%;">',
+                        '<col style="width: 21%;">',
+                        '<col style="width: 6%;">',
+                        '<col style="width: 21%;">',
+                        '<col style="width: 6%;">',
+                        '</colgroup>',
+                        '<tr>' + categories.map(function (category) {
+                            return '<th>' + escapeHtml(category.label) + '</th><th style="text-align: center;">POINT</th>';
+                        }).join('') + '</tr>',
+                        Array.from({ length: maxRows }).map(function (_, rowIndex) {
+                            return '<tr>' + categories.map(function (category) {
+                                var item = (category.items || [])[rowIndex] || {};
+                                var point = item.point == null ? '' : String(item.point);
+                                return '<td>' + escapeHtml(item.label || '') + '</td><td style="text-align: center;">' + escapeHtml(point) + '</td>';
+                            }).join('') + '</tr>';
+                        }).join(''),
+                        '</table>',
+                        '<table class="template-preview-table" style="grid-column: 1 / -1; font-size: 0.68rem;">',
+                        '<tr><th colspan="' + Math.max(ratings.length, 1) + '">' + escapeHtml(modelState.rating_title || 'Keys To Rating') + '</th></tr>',
+                        '<tr>' + ratings.map(function (rating) {
+                            return '<td style="text-align: center;">' + escapeHtml(rating.label + ' (' + rating.value + ')') + '</td>';
+                        }).join('') + '</tr>',
+                        '</table>',
+                        '</div>'
+                    ].join('');
+                }
+
+                function renderSection5GroupedTable(categories, ratings, labelText) {
+                    return [
+                        '<table class="template-preview-table template-preview-skills-table">',
+                        '<colgroup>',
+                        '<col class="template-preview-skill-col">',
+                        Array.from({ length: Math.max(ratings.length, 1) }).map(function () {
+                            return '<col class="template-preview-score-col">';
+                        }).join(''),
+                        '</colgroup>',
+                        categories.map(function (category) {
+                            var rows = (category.items || []).map(function (item) {
+                                return '<tr><td>' + escapeHtml(item.label) + '</td>' + renderSection5ScoreCells(ratings.length, item.rating || 1) + '</tr>';
+                            }).join('');
+                            return '<tr><th colspan="' + (ratings.length + 1) + '">' + escapeHtml(category.label) + '</th></tr>' +
+                                '<tr><th>' + escapeHtml(labelText) + '</th>' +
+                                ratings.map(function (rating) { return '<th>' + escapeHtml(rating.value) + '</th>'; }).join('') +
+                                '</tr>' +
+                                rows;
+                        }).join(''),
+                        '</table>'
+                    ].join('');
+                }
+
+                function renderSection5Model3(modelState) {
+                    var categories = modelState.categories || [];
+                    var ratings = modelState.ratings || [];
+                    var leftCategories = categories.filter(function (category) {
+                        return category.side === 'left';
+                    });
+                    var rightCategories = categories.filter(function (category) {
+                        return category.side === 'right';
+                    });
+
+                    return [
+                        '<div class="template-preview-skills" style="row-gap: 8px;">',
+                        renderSection5GroupedTable(leftCategories, ratings, 'Skill'),
+                        '<div style="display: grid; gap: 10px;">',
+                        renderSection5GroupedTable(rightCategories, ratings, 'Skill'),
+                        '<table class="template-preview-table template-preview-rating-key" style="width: 100%; margin-top: 0;">',
+                        '<tr><th colspan="' + Math.max(ratings.length, 1) + '">' + escapeHtml(modelState.rating_title || 'Keys To Rating') + '</th></tr>',
+                        '<tr>' + ratings.map(function (rating) {
+                            return '<td>' + escapeHtml(rating.value + ' - ' + rating.label) + '</td>';
+                        }).join('') + '</tr>',
+                        '</table>',
+                        '</div>',
+                        '</div>'
+                    ].join('');
+                }
+
+                function renderSection5Model(modelKey, modelState) {
+                    if (modelKey === 'model_1') {
+                        return renderSection5Model1(modelState);
+                    }
+                    if (modelKey === 'model_2') {
+                        return renderSection5Model2(modelState);
+                    }
+                    if (modelKey === 'model_3') {
+                        return renderSection5Model3(modelState);
+                    }
+                    return '';
+                }
+
+                function renderAllSection5Previews() {
+                    Object.keys(section5State).forEach(function (modelKey) {
+                        var variant = getSection5Variant(modelKey);
+                        if (!variant) {
+                            return;
+                        }
+                        variant.innerHTML = renderSection5Model(modelKey, section5State[modelKey]);
+                    });
+                }
+
+                function getSection5SelectedItemIndex() {
+                    var selectedIndex = section5ItemList ? section5ItemList.selectedIndex : -1;
+                    return selectedIndex < 0 ? -1 : selectedIndex;
+                }
+
+                function ensureSection5TabRange(state) {
+                    var categories = state.categories || [];
+                    if (!categories.length) {
+                        section5Ui.activeCategoryIndex = 0;
+                        section5Ui.tabStartIndex = 0;
+                        return;
+                    }
+
+                    if (section5Ui.activeCategoryIndex >= categories.length) {
+                        section5Ui.activeCategoryIndex = categories.length - 1;
+                    }
+
+                    if (section5Ui.tabStartIndex > section5Ui.activeCategoryIndex) {
+                        section5Ui.tabStartIndex = section5Ui.activeCategoryIndex;
+                    }
+
+                    if (section5Ui.activeCategoryIndex >= section5Ui.tabStartIndex + 3) {
+                        section5Ui.tabStartIndex = section5Ui.activeCategoryIndex - 2;
+                    }
+
+                    var maxStart = Math.max(categories.length - 3, 0);
+                    if (section5Ui.tabStartIndex > maxStart) {
+                        section5Ui.tabStartIndex = maxStart;
+                    }
+                }
+
+                function renderSection5Modal() {
+                    var state = getSection5WorkingState();
+                    if (!state || !section5Tabs || !section5CategoryName || !section5ItemList) {
+                        return;
+                    }
+
+                    var categories = state.categories || [];
+                    ensureSection5TabRange(state);
+                    section5Tabs.innerHTML = '';
+
+                    categories.slice(section5Ui.tabStartIndex, section5Ui.tabStartIndex + 3).forEach(function (category, offset) {
+                        var index = section5Ui.tabStartIndex + offset;
+                        var tab = document.createElement('button');
+                        tab.type = 'button';
+                        tab.className = 'template-editor-skills-tab' + (index === section5Ui.activeCategoryIndex ? ' is-active' : '');
+                        tab.textContent = category.label || 'Category';
+                        tab.addEventListener('click', function () {
+                            section5Ui.activeCategoryIndex = index;
+                            section5Ui.selectedItemIndex = 0;
+                            renderSection5Modal();
+                        });
+                        section5Tabs.appendChild(tab);
+                    });
+
+                    if (section5TabPrev) {
+                        section5TabPrev.disabled = section5Ui.tabStartIndex <= 0;
+                    }
+                    if (section5TabNext) {
+                        section5TabNext.disabled = section5Ui.tabStartIndex + 3 >= categories.length;
+                    }
+
+                    var activeCategory = categories[section5Ui.activeCategoryIndex];
+                    if (!activeCategory) {
+                        section5CategoryName.value = '';
+                        section5ItemList.innerHTML = '';
+                        return;
+                    }
+
+                    section5CategoryName.value = activeCategory.label || '';
+                    section5ItemList.innerHTML = '';
+                    (activeCategory.items || []).forEach(function (item, itemIndex) {
+                        var option = document.createElement('option');
+                        option.value = String(itemIndex);
+                        option.textContent = item.label || '';
+                        section5ItemList.appendChild(option);
+                    });
+
+                    if (section5ItemList.options.length) {
+                        var selectedIndex = Math.min(section5Ui.selectedItemIndex, section5ItemList.options.length - 1);
+                        section5ItemList.selectedIndex = Math.max(selectedIndex, 0);
+                    }
+                }
+
+                function openSection5Modal() {
+                    var currentModel = getCurrentSection5Model();
+                    var savedState = getSection5ModelState(currentModel);
+                    if (!section5Backdrop || !savedState) {
+                        return;
+                    }
+
+                    section5DraftModel = currentModel;
+                    section5Draft = deepClone(savedState);
+                    section5Ui.activeCategoryIndex = 0;
+                    section5Ui.tabStartIndex = 0;
+                    section5Ui.selectedItemIndex = 0;
+                    renderSection5Modal();
+                    section5Backdrop.classList.add('is-open');
+                    section5Backdrop.setAttribute('aria-hidden', 'false');
+                }
+
+                function closeSection5Modal() {
+                    if (!section5Backdrop) {
+                        return;
+                    }
+
+                    section5Backdrop.classList.remove('is-open');
+                    section5Backdrop.setAttribute('aria-hidden', 'true');
+                    closeSection5RatingModal();
+                    section5Draft = null;
+                    section5DraftModel = '';
+                }
+
+                function openSection5RatingModal() {
+                    var state = getSection5WorkingState();
+                    if (!section5RatingBackdrop || !section5RatingGrid || !state) {
+                        return;
+                    }
+
+                    section5RatingGrid.innerHTML = (state.ratings || []).map(function (rating, index) {
+                        return '<div class="template-editor-rating-row">' +
+                            '<div class="template-editor-rating-cell">' + escapeHtml(rating.value) + '</div>' +
+                            '<div class="template-editor-rating-cell"><input class="template-editor-rating-input" type="text" value="' + escapeHtml(rating.label) + '" data-s5-rating-input="' + index + '"></div>' +
+                            '</div>';
+                    }).join('');
+                    section5RatingBackdrop.classList.add('is-open');
+                    section5RatingBackdrop.setAttribute('aria-hidden', 'false');
+                }
+
+                function closeSection5RatingModal() {
+                    if (!section5RatingBackdrop) {
+                        return;
+                    }
+
+                    section5RatingBackdrop.classList.remove('is-open');
+                    section5RatingBackdrop.setAttribute('aria-hidden', 'true');
+                }
+
+                function setSection3ColumnVisibility(columnKey, visible) {
+                    var activeVariant = getSection3ActiveVariant();
+                    if (!activeVariant) {
+                        return;
+                    }
+
+                    activeVariant.querySelectorAll('[data-s3-col="' + columnKey + '"]').forEach(function (cell) {
+                        if (cell.tagName && cell.tagName.toLowerCase() === 'col') {
+                            cell.style.display = visible ? 'table-column' : 'none';
+                            return;
+                        }
+                        cell.style.display = visible ? '' : 'none';
+                    });
+                }
+
+                function rebuildSection3RepeatedColumns() {
+                    var activeVariant = getSection3ActiveVariant();
+                    if (!activeVariant) {
+                        return;
+                    }
+
+                    activeVariant.querySelectorAll('[data-s3-generated-for]').forEach(function (node) {
+                        node.remove();
+                    });
+
+                    var activeState = getSection3ActiveState();
+                    Object.keys(activeState.columns || {}).forEach(function (repeatKey) {
+                        var requestedCount = parseInt(activeState.columns[repeatKey], 10);
+                        var count = isNaN(requestedCount) ? 1 : Math.max(1, requestedCount);
+                        if (count <= 1) {
+                            return;
+                        }
+
+                        activeVariant.querySelectorAll('[data-s3-repeat-source="' + repeatKey + '"]').forEach(function (source) {
+                            var previous = source;
+                            for (var index = 1; index < count; index += 1) {
+                                var clone = source.cloneNode(true);
+                                clone.removeAttribute('data-s3-repeat-source');
+                                clone.dataset.s3GeneratedFor = repeatKey;
+
+                                if (repeatKey === 'test' && clone.matches && clone.matches('th.template-preview-academic-main')) {
+                                    clone.textContent = 'TEST ' + (index + 1);
+                                }
+                                if (repeatKey === 'ca' && getCurrentSection3Model() === 'model_5' && clone.matches && clone.matches('th.template-preview-academic-main')) {
+                                    clone.textContent = 'C' + (index + 1);
+                                }
+
+                                previous.parentNode.insertBefore(clone, previous.nextSibling);
+                                previous = clone;
+                            }
+                        });
+                    });
+                }
+
+                function rebalanceSection3Table() {
+                    var activeVariant = getSection3ActiveVariant();
+                    var table = activeVariant ? activeVariant.querySelector('.template-preview-table') : null;
+                    if (!table) {
+                        return;
+                    }
+
+                    var subjectCol = table.querySelector('[data-s3-role="subject-col"]');
+                    if (!subjectCol) {
+                        return;
+                    }
+
+                    var usedWidth = 0;
+                    table.querySelectorAll('col[data-s3-col]').forEach(function (col) {
+                        if (col.style.display === 'none') {
+                            return;
+                        }
+
+                        var width = parseFloat(col.dataset.s3Width || '0');
+                        if (!Number.isNaN(width)) {
+                            usedWidth += width;
+                        }
+                    });
+
+                    var subjectWidth = Math.max(35, 100 - usedWidth);
+                    subjectCol.style.width = subjectWidth + '%';
+
+                    var titleCell = table.querySelector('.template-preview-academic-title');
+                    if (titleCell) {
+                        var visibleCols = 0;
+                        table.querySelectorAll('col[data-s3-col]').forEach(function (col) {
+                            if (col.style.display !== 'none') {
+                                visibleCols += 1;
+                            }
+                        });
+                        titleCell.colSpan = visibleCols + 1;
+                    }
+                }
+
+                function updateSection3Model2SummaryLayout(activeVariant, activeState) {
+                    if (!activeVariant || getCurrentSection3Model() !== 'model_2') {
+                        return;
+                    }
+
+                    var table = activeVariant.querySelector('.template-preview-table');
+                    var totalsRow = activeVariant.querySelector('[data-s3-model2-summary="totals"]');
+                    var decisionRow = activeVariant.querySelector('[data-s3-model2-summary="decision"]');
+                    if (!table || !totalsRow || !decisionRow) {
+                        return;
+                    }
+
+                    var visibility = activeState.visibility || {};
+                    var totalGroups = {
+                        grand_total_1: ['ca'],
+                        grand_total_2: ['coef'],
+                        grand_total_3: ['marks_average', 'competences_developed', 'attendance', 'class_work', 'home_work', 'assignment', 'activities', 'assessment', 'project', 'exam'],
+                        grand_total_4: ['total_score', 'cum_total_score'],
+                        grand_total_5: ['percentage'],
+                        grand_total_6: ['position_in_subject', 'class_average'],
+                        grand_total_7: ['remarks', 'sign', 'subject_teacher', 'grade', 'class_highest', 'class_lowest'],
+                    };
+
+                    function countVisibleColumns(keys) {
+                        return keys.reduce(function (count, key) {
+                            return count + (visibility[key] === false ? 0 : 1);
+                        }, 0);
+                    }
+
+                    var visibleDataColumns = 0;
+                    table.querySelectorAll('col[data-s3-col]').forEach(function (col) {
+                        if (col.style.display !== 'none') {
+                            visibleDataColumns += 1;
+                        }
+                    });
+
+                    var grandTotalLabel = totalsRow.querySelector('[data-s3-summary-role="grand_total_label"]');
+                    if (grandTotalLabel) {
+                        grandTotalLabel.colSpan = 1;
+                        grandTotalLabel.style.display = '';
+                    }
+
+                    Object.keys(totalGroups).forEach(function (role) {
+                        var cell = totalsRow.querySelector('[data-s3-summary-role="' + role + '"]');
+                        if (!cell) {
+                            return;
+                        }
+
+                        var visibleCount = countVisibleColumns(totalGroups[role]);
+                        if (visibleCount <= 0) {
+                            cell.style.display = 'none';
+                            cell.colSpan = 1;
+                            return;
+                        }
+
+                        cell.style.display = '';
+                        cell.colSpan = visibleCount;
+                    });
+
+                    var decisionLabel = decisionRow.querySelector('[data-s3-summary-role="decision_label"]');
+                    var decisionValue = decisionRow.querySelector('[data-s3-summary-role="decision_value"]');
+                    if (!decisionLabel || !decisionValue) {
+                        return;
+                    }
+
+                    var totalVisibleColumns = visibleDataColumns + 1;
+                    var decisionValueSpan = Math.min(3, Math.max(1, totalVisibleColumns - 1));
+                    var decisionLabelSpan = Math.max(1, totalVisibleColumns - decisionValueSpan);
+
+                    decisionLabel.colSpan = decisionLabelSpan;
+                    decisionValue.colSpan = decisionValueSpan;
+                    decisionLabel.style.display = '';
+                    decisionValue.style.display = '';
+                }
+
+                function updateSection3Preview() {
+                    rebuildSection3RepeatedColumns();
+
+                    var activeState = getSection3ActiveState();
+                    Object.keys(activeState.visibility || {}).forEach(function (columnKey) {
+                        setSection3ColumnVisibility(columnKey, activeState.visibility[columnKey]);
+                    });
+
+                    var activeVariant = getSection3ActiveVariant();
+                    if (!activeVariant) {
+                        return;
+                    }
+
+                    Object.keys(activeState.scores || {}).forEach(function (scoreKey) {
+                        activeVariant.querySelectorAll('[data-s3-score="' + scoreKey + '"]').forEach(function (node) {
+                            node.textContent = activeState.scores[scoreKey] || '0';
+                        });
+                    });
+
+                    var currentModel = getCurrentSection3Model();
+                    if (currentModel === 'model_3') {
+                        var testValue = parseInt(activeState.scores.test, 10);
+                        var testColumns = parseInt(activeState.columns.test, 10);
+                        var repeatedTotal = (isNaN(testValue) ? 0 : testValue) * (isNaN(testColumns) ? 1 : Math.max(1, testColumns));
+                        activeVariant.querySelectorAll('[data-s3-score="total_score"]').forEach(function (node) {
+                            node.textContent = String(repeatedTotal);
+                        });
+                    }
+
+                    updateSection3Model2SummaryLayout(activeVariant, activeState);
+                    rebalanceSection3Table();
+                }
+
+                document.addEventListener('section3:modelchange', function () {
+                    updateSection3Preview();
+                });
+
+                document.querySelectorAll('.template-editor-customize').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        if (button.disabled) {
+                            return;
+                        }
+                        if ((button.dataset.customizeMode || '') === 'section1_model3') {
+                            openModal();
+                        } else if ((button.dataset.customizeMode || '') === 'section2_student_details') {
+                            openSection2Modal();
+                        } else if ((button.dataset.customizeMode || '') === 'section3_headers') {
+                            openSection3Modal();
+                        } else if ((button.dataset.customizeMode || '') === 'section5_skills') {
+                            openSection5Modal();
+                        }
+                    });
+                });
+
+                closeButton.addEventListener('click', closeModal);
+                backdrop.addEventListener('click', function (event) {
+                    if (event.target === backdrop) {
+                        closeModal();
+                    }
+                });
+                saveButton.addEventListener('click', function () {
+                    updatePreview();
+                    closeModal();
+                });
+
+                section2Close.addEventListener('click', closeSection2Modal);
+                section2Backdrop.addEventListener('click', function (event) {
+                    if (event.target === section2Backdrop) {
+                        closeSection2Modal();
+                    }
+                });
+                section3Close.addEventListener('click', closeSection3Modal);
+                section3Backdrop.addEventListener('click', function (event) {
+                    if (event.target === section3Backdrop) {
+                        closeSection3Modal();
+                    }
+                });
+                if (section3GradingButton) {
+                    section3GradingButton.addEventListener('click', openSection3ActionModal);
+                }
+                if (section3GradingClose) {
+                    section3GradingClose.addEventListener('click', closeSection3GradingModal);
+                }
+                if (section3GradingSave) {
+                    section3GradingSave.addEventListener('click', closeSection3GradingModal);
+                }
+                if (section3GradingBackdrop) {
+                    section3GradingBackdrop.addEventListener('click', function (event) {
+                        if (event.target === section3GradingBackdrop) {
+                            closeSection3GradingModal();
+                        }
+                    });
+                }
+                if (section3DivisionClose) {
+                    section3DivisionClose.addEventListener('click', closeSection3DivisionModal);
+                }
+                if (section3DivisionSave) {
+                    section3DivisionSave.addEventListener('click', closeSection3DivisionModal);
+                }
+                if (section3DivisionBackdrop) {
+                    section3DivisionBackdrop.addEventListener('click', function (event) {
+                        if (event.target === section3DivisionBackdrop) {
+                            closeSection3DivisionModal();
+                        }
+                    });
+                }
+                if (section5Close) {
+                    section5Close.addEventListener('click', closeSection5Modal);
+                }
+                if (section5Backdrop) {
+                    section5Backdrop.addEventListener('click', function (event) {
+                        if (event.target === section5Backdrop) {
+                            closeSection5Modal();
+                        }
+                    });
+                }
+                if (section5RatingClose) {
+                    section5RatingClose.addEventListener('click', closeSection5RatingModal);
+                }
+                if (section5RatingBackdrop) {
+                    section5RatingBackdrop.addEventListener('click', function (event) {
+                        if (event.target === section5RatingBackdrop) {
+                            closeSection5RatingModal();
+                        }
+                    });
+                }
+                if (section5TabPrev) {
+                    section5TabPrev.addEventListener('click', function () {
+                        if (!section5Draft) {
+                            return;
+                        }
+                        section5Ui.tabStartIndex = Math.max(section5Ui.tabStartIndex - 1, 0);
+                        renderSection5Modal();
+                    });
+                }
+                if (section5TabNext) {
+                    section5TabNext.addEventListener('click', function () {
+                        if (!section5Draft) {
+                            return;
+                        }
+                        var categories = section5Draft.categories || [];
+                        var maxStart = Math.max(categories.length - 3, 0);
+                        section5Ui.tabStartIndex = Math.min(section5Ui.tabStartIndex + 1, maxStart);
+                        renderSection5Modal();
+                    });
+                }
+                if (section5CategoryName) {
+                    section5CategoryName.addEventListener('input', function () {
+                        var state = getSection5WorkingState();
+                        if (!state) {
+                            return;
+                        }
+                        var activeCategory = (state.categories || [])[section5Ui.activeCategoryIndex];
+                        if (!activeCategory) {
+                            return;
+                        }
+                        activeCategory.label = section5CategoryName.value.toUpperCase();
+                    });
+                    section5CategoryName.addEventListener('change', function () {
+                        renderSection5Modal();
+                    });
+                }
+                if (section5ItemList) {
+                    section5ItemList.addEventListener('change', function () {
+                        section5Ui.selectedItemIndex = getSection5SelectedItemIndex();
+                    });
+                }
+                section3GradingTabs.forEach(function (tab) {
+                    tab.addEventListener('click', function () {
+                        showSection3GradingPanel(tab.dataset.s3GradingTab);
+                    });
+                });
+                section2Save.addEventListener('click', function () {
+                    section2Visibility.name = section2FieldName.checked;
+                    section2Visibility.date_of_birth = section2FieldDateOfBirth.checked;
+                    section2Visibility.sex = section2FieldSex.checked;
+                    section2Visibility.class_name = section2FieldClassName.checked;
+                    section2Visibility.admission_no = section2FieldAdmissionNo.checked;
+                    updateSection2Preview();
+                    closeSection2Modal();
+                });
+                section2Reset.addEventListener('click', function () {
+                    section2Visibility.name = true;
+                    section2Visibility.date_of_birth = true;
+                    section2Visibility.sex = true;
+                    section2Visibility.class_name = true;
+                    section2Visibility.admission_no = true;
+                    section2FieldName.checked = true;
+                    section2FieldDateOfBirth.checked = true;
+                    section2FieldSex.checked = true;
+                    section2FieldClassName.checked = true;
+                    section2FieldAdmissionNo.checked = true;
+                    updateSection2Preview();
+                });
+                section3Save.addEventListener('click', function () {
+                    var currentModel = getCurrentSection3Model();
+                    var activeState = getSection3ActiveState();
+                    section3Rows.forEach(function (row) {
+                        var supportedModels = (row.dataset.s3Models || '').split(',').filter(Boolean);
+                        if (supportedModels.indexOf(currentModel) === -1) {
+                            return;
+                        }
+
+                        row.querySelectorAll('[data-s3-toggle]').forEach(function (toggle) {
+                            activeState.visibility[toggle.dataset.s3Toggle] = toggle.checked;
+                        });
+                        row.querySelectorAll('[data-s3-score-input]').forEach(function (input) {
+                            activeState.scores[input.dataset.s3ScoreInput] = input.value.trim() || '0';
+                        });
+                        row.querySelectorAll('[data-s3-columns-input]').forEach(function (input) {
+                            activeState.columns[input.dataset.s3ColumnsInput] = input.value.trim() || '1';
+                        });
+                    });
+                    updateSection3Preview();
+                    closeSection3Modal();
+                });
+                section3Reset.addEventListener('click', function () {
+                    var currentModel = getCurrentSection3Model();
+                    var modelDefaults = section3ModelConfigs[currentModel] || { visibility: {}, scores: {}, columns: {} };
+                    section3State[currentModel] = {
+                        visibility: Object.assign({}, modelDefaults.visibility || {}),
+                        scores: Object.assign({}, modelDefaults.scores || {}),
+                        columns: Object.assign({}, modelDefaults.columns || {})
+                    };
+                    var activeState = getSection3ActiveState();
+                    section3Rows.forEach(function (row) {
+                        var supportedModels = (row.dataset.s3Models || '').split(',').filter(Boolean);
+                        if (supportedModels.indexOf(currentModel) === -1) {
+                            return;
+                        }
+
+                        row.querySelectorAll('[data-s3-toggle]').forEach(function (toggle) {
+                            toggle.checked = !!activeState.visibility[toggle.dataset.s3Toggle];
+                        });
+                        row.querySelectorAll('[data-s3-score-input]').forEach(function (input) {
+                            var key = input.dataset.s3ScoreInput;
+                            input.value = activeState.scores[key] || '';
+                        });
+                        row.querySelectorAll('[data-s3-columns-input]').forEach(function (input) {
+                            var key = input.dataset.s3ColumnsInput;
+                            input.value = activeState.columns[key] || '';
+                        });
+                    });
+                    updateSection3Preview();
+                });
+                if (section5AddItem) {
+                    section5AddItem.addEventListener('click', function () {
+                        var state = getSection5WorkingState();
+                        var activeCategory = state ? (state.categories || [])[section5Ui.activeCategoryIndex] : null;
+                        if (!activeCategory) {
+                            return;
+                        }
+
+                        var newLabel = window.prompt('Enter a new item for this category.', '');
+                        if (!newLabel || !newLabel.trim()) {
+                            return;
+                        }
+
+                        var newItem = section5DraftModel === 'model_2'
+                            ? { label: newLabel.trim(), point: 3 }
+                            : {
+                                label: newLabel.trim(),
+                                rating: Math.max(1, Math.ceil(((state.ratings || []).length || 1) / 2))
+                            };
+                        activeCategory.items = activeCategory.items || [];
+                        activeCategory.items.push(newItem);
+                        section5Ui.selectedItemIndex = activeCategory.items.length - 1;
+                        renderSection5Modal();
+                    });
+                }
+                if (section5EditItem) {
+                    section5EditItem.addEventListener('click', function () {
+                        var state = getSection5WorkingState();
+                        var activeCategory = state ? (state.categories || [])[section5Ui.activeCategoryIndex] : null;
+                        var itemIndex = getSection5SelectedItemIndex();
+                        var activeItem = activeCategory && activeCategory.items ? activeCategory.items[itemIndex] : null;
+                        if (!activeItem) {
+                            return;
+                        }
+
+                        var newLabel = window.prompt('Edit the selected item.', activeItem.label || '');
+                        if (!newLabel || !newLabel.trim()) {
+                            return;
+                        }
+
+                        activeItem.label = newLabel.trim();
+                        section5Ui.selectedItemIndex = itemIndex;
+                        renderSection5Modal();
+                    });
+                }
+                if (section5DeleteItem) {
+                    section5DeleteItem.addEventListener('click', function () {
+                        var state = getSection5WorkingState();
+                        var activeCategory = state ? (state.categories || [])[section5Ui.activeCategoryIndex] : null;
+                        var itemIndex = getSection5SelectedItemIndex();
+                        if (!activeCategory || !activeCategory.items || itemIndex < 0 || itemIndex >= activeCategory.items.length) {
+                            return;
+                        }
+
+                        if (!window.confirm('Delete the selected item?')) {
+                            return;
+                        }
+
+                        activeCategory.items.splice(itemIndex, 1);
+                        section5Ui.selectedItemIndex = Math.max(itemIndex - 1, 0);
+                        renderSection5Modal();
+                    });
+                }
+                if (section5MoveUp) {
+                    section5MoveUp.addEventListener('click', function () {
+                        var state = getSection5WorkingState();
+                        var activeCategory = state ? (state.categories || [])[section5Ui.activeCategoryIndex] : null;
+                        var itemIndex = getSection5SelectedItemIndex();
+                        if (!activeCategory || !activeCategory.items || itemIndex <= 0) {
+                            return;
+                        }
+
+                        var movedItem = activeCategory.items[itemIndex];
+                        activeCategory.items[itemIndex] = activeCategory.items[itemIndex - 1];
+                        activeCategory.items[itemIndex - 1] = movedItem;
+                        section5Ui.selectedItemIndex = itemIndex - 1;
+                        renderSection5Modal();
+                    });
+                }
+                if (section5MoveDown) {
+                    section5MoveDown.addEventListener('click', function () {
+                        var state = getSection5WorkingState();
+                        var activeCategory = state ? (state.categories || [])[section5Ui.activeCategoryIndex] : null;
+                        var itemIndex = getSection5SelectedItemIndex();
+                        if (!activeCategory || !activeCategory.items || itemIndex < 0 || itemIndex >= activeCategory.items.length - 1) {
+                            return;
+                        }
+
+                        var movedItem = activeCategory.items[itemIndex];
+                        activeCategory.items[itemIndex] = activeCategory.items[itemIndex + 1];
+                        activeCategory.items[itemIndex + 1] = movedItem;
+                        section5Ui.selectedItemIndex = itemIndex + 1;
+                        renderSection5Modal();
+                    });
+                }
+                if (section5KeysButton) {
+                    section5KeysButton.addEventListener('click', openSection5RatingModal);
+                }
+                if (section5RatingSave) {
+                    section5RatingSave.addEventListener('click', function () {
+                        var state = getSection5WorkingState();
+                        if (!state) {
+                            return;
+                        }
+
+                        section5RatingGrid.querySelectorAll('[data-s5-rating-input]').forEach(function (input) {
+                            var ratingIndex = parseInt(input.dataset.s5RatingInput, 10);
+                            if (!Number.isNaN(ratingIndex) && state.ratings[ratingIndex]) {
+                                state.ratings[ratingIndex].label = input.value.trim() || state.ratings[ratingIndex].label;
+                            }
+                        });
+                        closeSection5RatingModal();
+                    });
+                }
+                if (section5Save) {
+                    section5Save.addEventListener('click', function () {
+                        if (!section5Draft || !section5DraftModel) {
+                            return;
+                        }
+
+                        section5State[section5DraftModel] = deepClone(section5Draft);
+                        renderAllSection5Previews();
+                        closeSection5Modal();
+                    });
+                }
+
+                updateSection2Preview();
+                renderAllSection5Previews();
+                showSection3GradingPanel('cumulative');
+                updateSection3Preview();
+            }
+
+            fitTemplateEditor();
+            bindTemplateEditorControls();
+            bindCustomizeControls();
+            syncTemplatePreview();
+            window.addEventListener('load', fitTemplateEditor);
+            window.addEventListener('resize', fitTemplateEditor);
+        }());
+    </script>
+{% endblock %}

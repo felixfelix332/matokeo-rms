@@ -1,0 +1,224 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Teachers{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_teachers.css' %}">
+{% endblock %}
+
+{% block body_extras %}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="hidden js-teacher-message" data-message="{{ message|escape }}"></div>
+        {% endfor %}
+    {% endif %}
+{% endblock %}
+
+{% block content_class %} teachers-content{% endblock %}
+
+{% block content %}
+                <button type="button" class="teachers-close-button" onclick="window.location.href='{% url 'accounts:school_registration' school.id %}'" aria-label="Close">x</button>
+                <div class="teachers-title">Teachers</div>
+                <div class="teachers-toolbar">
+                    <form method="get" class="teachers-search-form">
+                        <input type="text" name="search" value="{{ search }}" class="teachers-search-input">
+                        <button type="submit" class="teachers-search-button" aria-label="Search">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="7"></circle>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m20 20-4-4"></path>
+                            </svg>
+                        </button>
+                    </form>
+                    <button type="button" class="teachers-add-button" id="addTeacherButton">Add Teacher</button>
+                </div>
+                <div class="teachers-table-wrap">
+                    <table class="teachers-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Sign</th>
+                                <th>Image</th>
+                                <th>Sex</th>
+                                <th>DateOfBirth</th>
+                                <th>Tel</th>
+                                <th>Email</th>
+                                <th>Address</th>
+                                <th>Experience</th>
+                                <th>Qualifications</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for teacher in teachers %}
+                            <tr>
+                                <td>{{ teacher.name }}</td>
+                                <td>{{ teacher.signature|default:'' }}</td>
+                                <td>{% if teacher.image_url %}<img src="{{ teacher.image_url }}" alt="" class="teachers-table-image">{% endif %}</td>
+                                <td>{{ teacher.gender|default:'' }}</td>
+                                <td>{{ teacher.date_of_birth|default:'' }}</td>
+                                <td>{{ teacher.phone|default:'' }}</td>
+                                <td>{{ teacher.email|default:'' }}</td>
+                                <td>{{ teacher.address|default:'' }}</td>
+                                <td>{{ teacher.experience|default:'' }}</td>
+                                <td>{{ teacher.qualifications|default:'' }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr class="teachers-empty-row">
+                                <td colspan="10"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+{% endblock %}
+
+{% block after_layout %}
+    <div id="teacherModal" class="teacher-modal{% if not open_teacher_modal %} hidden{% endif %}" role="dialog" aria-modal="true" aria-labelledby="teacherModalTitle">
+        <div class="teacher-modal-card">
+            <button type="button" class="teacher-modal-close" onclick="closeTeacherModal()" aria-label="Close">&times;</button>
+            <div class="teacher-modal-title" id="teacherModalTitle">Teacher Registration</div>
+            <form method="post" enctype="multipart/form-data" class="teacher-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_teacher">
+                <div class="teacher-form-left">
+                    <label class="teacher-label">Name</label>
+                    <input type="text" name="name" class="teacher-input" value="{{ teacher_form.name }}">
+                    <div class="teacher-form-row teacher-form-row-three">
+                        <div>
+                            <label class="teacher-label">Sex</label>
+                            <select name="gender" class="teacher-input">
+                                <option value="MALE" {% if teacher_form.gender == 'MALE' %}selected{% endif %}>MALE</option>
+                                <option value="FEMALE" {% if teacher_form.gender == 'FEMALE' %}selected{% endif %}>FEMALE</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="teacher-label">Date Of Birth</label>
+                            <input type="text" name="date_of_birth" class="teacher-input" value="{{ teacher_form.date_of_birth }}">
+                        </div>
+                        <div>
+                            <label class="teacher-label">Tel</label>
+                            <input type="text" name="phone" class="teacher-input" value="{{ teacher_form.phone }}">
+                        </div>
+                    </div>
+                    <div class="teacher-form-row teacher-form-row-two">
+                        <div>
+                            <label class="teacher-label">Email</label>
+                            <input type="text" name="email" class="teacher-input" value="{{ teacher_form.email }}">
+                        </div>
+                        <div>
+                            <label class="teacher-label">Sign</label>
+                            <input type="text" name="signature" class="teacher-input" value="{{ teacher_form.signature }}">
+                        </div>
+                    </div>
+                    <div class="teacher-form-row teacher-form-row-two">
+                        <div>
+                            <label class="teacher-label">Experience</label>
+                            <input type="text" name="experience" class="teacher-input" value="{{ teacher_form.experience }}">
+                        </div>
+                        <div>
+                            <label class="teacher-label">Qualifications</label>
+                            <input type="text" name="qualifications" class="teacher-input" value="{{ teacher_form.qualifications }}">
+                        </div>
+                    </div>
+                    <div class="teacher-form-row teacher-form-row-two">
+                        <div class="teacher-form-span-two">
+                            <label class="teacher-label">Address</label>
+                            <textarea name="address" class="teacher-textarea">{{ teacher_form.address }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="teacher-form-right">
+                    <div class="teacher-image-box">
+                        <img id="teacherImagePreview" src="{{ teacher_form.image_url }}" alt="" class="teacher-image-preview{% if not teacher_form.image_url %} hidden{% endif %}">
+                    </div>
+                    <input type="file" name="teacher_image" id="teacherImageInput" accept="image/*" class="hidden" onchange="previewTeacherImage(this)">
+                    <div class="teacher-image-actions">
+                        <button type="button" class="teacher-image-button" onclick="document.getElementById('teacherImageInput').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V8m0 0-3 3m3-3 3 3M4 16.5v1.25A2.25 2.25 0 0 0 6.25 20h11.5A2.25 2.25 0 0 0 20 17.75V16.5"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="teacher-image-button teacher-image-button-danger" onclick="clearTeacherImage()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="teacher-form-footer">
+                    <button type="submit" class="teacher-register-button">Add Teacher</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="teacherNoticeDialog" class="teacher-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="teacherNoticeTitle">
+        <div class="teacher-dialog-card">
+            <div class="teacher-dialog-header">
+                <h2 id="teacherNoticeTitle" class="teacher-dialog-title">Notice</h2>
+                <button type="button" class="teacher-dialog-close" onclick="closeTeacherNotice()" aria-label="Close">&times;</button>
+            </div>
+            <div class="teacher-dialog-body">
+                <p id="teacherNoticeText" class="teacher-dialog-text"></p>
+            </div>
+            <div class="teacher-dialog-footer">
+                <button type="button" class="teacher-dialog-button" onclick="closeTeacherNotice()">OK</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_body %}
+    <script>
+        (function () {
+            var addTeacherButton = document.getElementById('addTeacherButton');
+            if (addTeacherButton) {
+                addTeacherButton.addEventListener('click', function () {
+                    openTeacherModal();
+                });
+            }
+
+            Array.prototype.slice.call(document.querySelectorAll('.js-teacher-message')).forEach(function (message) {
+                showTeacherNotice(message.getAttribute('data-message'));
+            });
+        }());
+
+        function openTeacherModal() {
+            document.getElementById('teacherModal').classList.remove('hidden');
+        }
+
+        function closeTeacherModal() {
+            document.getElementById('teacherModal').classList.add('hidden');
+        }
+
+        function previewTeacherImage(input) {
+            var preview = document.getElementById('teacherImagePreview');
+            if (!preview || !input.files || !input.files[0]) {
+                return;
+            }
+            preview.src = URL.createObjectURL(input.files[0]);
+            preview.classList.remove('hidden');
+        }
+
+        function clearTeacherImage() {
+            var input = document.getElementById('teacherImageInput');
+            var preview = document.getElementById('teacherImagePreview');
+            if (input) {
+                input.value = '';
+            }
+            if (preview) {
+                preview.src = '';
+                preview.classList.add('hidden');
+            }
+        }
+
+        function showTeacherNotice(message) {
+            document.getElementById('teacherNoticeText').textContent = message;
+            document.getElementById('teacherNoticeDialog').classList.remove('hidden');
+        }
+
+        function closeTeacherNotice() {
+            document.getElementById('teacherNoticeDialog').classList.add('hidden');
+        }
+    </script>
+{% endblock %}

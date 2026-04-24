@@ -1,0 +1,263 @@
+{% extends "portal/teacher/base.html" %}
+{% load humanize %}
+
+{% block title %}Marks Entry &mdash; {{ school_class.name }} | {{ subject.name }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .marks-input {
+        width: 80px;
+        text-align: center;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #1e293b;
+        transition: all 0.2s ease;
+        background: #f8fafc;
+    }
+    .marks-input:focus {
+        border-color: #10b981;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+        background: white;
+    }
+    .marks-input.has-value { background: white; border-color: #86efac; }
+    .marks-input.error { border-color: #fca5a5; background: #fff1f2; }
+    .score-cell { font-variant-numeric: tabular-nums; }
+    .sticky-header th { position: sticky; top: 0; z-index: 10; }
+    .save-bar {
+        position: sticky;
+        bottom: 0;
+        z-index: 20;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+    @keyframes savedPulse {
+        0% { transform: scale(0.95); opacity: 0; }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .saved-badge { animation: savedPulse 0.5s ease-out; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <a href="{% url 'portal:marks_menu' %}" class="text-xs font-semibold text-emerald-600 hover:underline">&larr; Back to Marks Menu</a>
+        <h2 class="mt-1 text-xl font-extrabold text-gray-900">{{ school_class.name }} &mdash; {{ subject.name }}</h2>
+        <p class="mt-0.5 text-sm text-gray-500">{{ term.session.session_name }} &bull; Term {{ term.term }} &bull; Scheme: {{ scheme.scheme_name }}</p>
+    </div>
+    {% if saved %}
+    <div class="saved-badge inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-4 py-2">
+        <svg class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+        <span class="text-sm font-bold text-emerald-700">Saved!</span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Component Legend -->
+<div class="mb-4 flex flex-wrap gap-2">
+    {% for comp in components %}
+    <div class="inline-flex items-center gap-2 rounded-xl bg-white border border-gray-200 px-3 py-2 shadow-sm">
+        <div class="h-3 w-3 rounded-full {% if comp.period == 'midterm' %}bg-blue-500{% elif comp.period == 'endterm' %}bg-violet-500{% elif comp.period == 'opener' %}bg-amber-500{% else %}bg-gray-500{% endif %}"></div>
+        <span class="text-xs font-bold text-gray-700">{{ comp.label }}</span>
+        <span class="text-[10px] font-semibold text-gray-400">max {{ comp.input_max_score|default:comp.max_score }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- CBC Grading Scale -->
+<div class="mb-4 flex flex-wrap gap-1.5">
+    <span class="text-[10px] font-bold text-gray-500 uppercase mr-1 self-center">CBC Scale:</span>
+    <span class="badge badge-ee1">EE1 (80-100) 8pts</span>
+    <span class="badge badge-ee2">EE2 (70-79) 7pts</span>
+    <span class="badge badge-me1">ME1 (60-69) 6pts</span>
+    <span class="badge badge-me2">ME2 (50-59) 5pts</span>
+    <span class="badge badge-ae1">AE1 (40-49) 4pts</span>
+    <span class="badge badge-ae2">AE2 (30-39) 3pts</span>
+    <span class="badge badge-be1">BE1 (20-29) 2pts</span>
+    <span class="badge badge-be2">BE2 (0-19) 1pt</span>
+</div>
+
+<!-- Marks Form -->
+<form method="post" id="marksForm">
+    {% csrf_token %}
+    <input type="hidden" name="class" value="{{ class_id }}">
+    <input type="hidden" name="subject" value="{{ subject_id }}">
+    <input type="hidden" name="term" value="{{ term_id }}">
+
+    <div class="rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="sticky-header">
+                    <tr class="border-b border-gray-200 bg-gray-50">
+                        <th class="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 w-12">#</th>
+                        <th class="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 min-w-[180px]">Student</th>
+                        <th class="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50">Adm</th>
+                        {% for comp in components %}
+                        <th class="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-wider bg-gray-50 {% if comp.period == 'midterm' %}text-blue-700{% elif comp.period == 'endterm' %}text-violet-700{% elif comp.period == 'opener' %}text-amber-700{% else %}text-gray-500{% endif %}">
+                            {{ comp.label }}<br>
+                            <span class="text-[9px] font-semibold text-gray-400">({{ comp.input_max_score|default:comp.max_score }})</span>
+                        </th>
+                        {% endfor %}
+                        <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50">Total</th>
+                        <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50">Grade</th>
+                        <th class="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50">Pts</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for row in rows %}
+                    <tr class="table-row hover:bg-emerald-50/30" data-student="{{ row.student.id }}">
+                        <td class="px-4 py-2.5 text-xs font-semibold text-gray-400">{{ forloop.counter }}</td>
+                        <td class="px-4 py-2.5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br {% if row.student.gender == 'M' %}from-blue-400 to-blue-600{% else %}from-pink-400 to-pink-600{% endif %} text-[9px] font-bold text-white shrink-0">
+                                    {{ row.student.first_name|first }}{{ row.student.last_name|first }}
+                                </div>
+                                <span class="text-xs font-semibold text-gray-900">{{ row.student.first_name }} {{ row.student.last_name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-2.5 text-[11px] font-mono text-gray-500">{{ row.student.admission_number }}</td>
+                        {% for entry in row.comp_entries %}
+                        <td class="px-2 py-2 text-center">
+                            <input type="number"
+                                name="score_{{ row.student.id }}_{{ entry.comp.id }}"
+                                value="{{ entry.value }}"
+                                min="0" max="{{ entry.comp.input_max_score|default:entry.comp.max_score }}" step="0.5"
+                                class="marks-input {% if entry.has_value %}has-value{% endif %}"
+                                data-max="{{ entry.comp.input_max_score|default:entry.comp.max_score }}"
+                                data-student="{{ row.student.id }}"
+                                oninput="validateInput(this); recalcRow({{ row.student.id }})"
+                                placeholder="-">
+                        </td>
+                        {% endfor %}
+                        <td class="px-4 py-2.5 text-center">
+                            <span id="total_{{ row.student.id }}" class="score-cell text-sm font-extrabold text-gray-900">
+                                {% if row.total_score %}{{ row.total_score|floatformat:0 }}{% else %}-{% endif %}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5 text-center">
+                            <span id="grade_{{ row.student.id }}" class="badge {% if row.grade %}badge-{{ row.grade|lower }}{% else %}bg-gray-100 text-gray-500{% endif %}">
+                                {{ row.grade|default:"-" }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5 text-center">
+                            <span id="points_{{ row.student.id }}" class="text-sm font-extrabold text-gray-700">
+                                {{ row.points|default:"-" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="{{ components|length|add:6 }}" class="px-4 py-12 text-center text-sm text-gray-400">No students in this class.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Save Bar -->
+    {% if rows %}
+    <div class="save-bar mt-0 rounded-b-2xl border-x border-b border-gray-200 bg-white/90 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <p class="text-xs text-gray-500"><span id="filledCount" class="font-bold text-gray-900">0</span> of {{ rows|length }} students have marks entered</p>
+            <button type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/25 transition hover:from-emerald-700 hover:to-emerald-800 active:scale-[0.98]">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                Save All Marks
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const componentIds = [{% for comp in components %}{{ comp.id }}{% if not forloop.last %},{% endif %}{% endfor %}];
+const allPercentage = {% if components %}'{{ components.0.input_mode }}' === 'percentage'{% else %}false{% endif %};
+
+function validateInput(input) {
+    const max = parseFloat(input.dataset.max);
+    let val = parseFloat(input.value);
+    if (isNaN(val)) {
+        input.classList.remove('has-value', 'error');
+        return;
+    }
+    if (val < 0) { input.value = 0; val = 0; }
+    if (val > max) { input.value = max; val = max; input.classList.add('error'); setTimeout(() => input.classList.remove('error'), 800); }
+    input.classList.add('has-value');
+}
+
+function recalcRow(studentId) {
+    let total = 0;
+    let count = 0;
+    let allPct = true;
+
+    componentIds.forEach(cid => {
+        const inp = document.querySelector(`input[name="score_${studentId}_${cid}"]`);
+        if (inp && inp.value !== '') {
+            total += parseFloat(inp.value) || 0;
+            count++;
+        }
+        // Check if input_mode is percentage
+        if (inp && inp.dataset.max !== '100') allPct = false;
+    });
+
+    const totalEl = document.getElementById('total_' + studentId);
+    const gradeEl = document.getElementById('grade_' + studentId);
+
+    if (count === 0) {
+        totalEl.textContent = '-';
+        gradeEl.textContent = '-';
+        gradeEl.className = 'badge bg-gray-100 text-gray-500';
+        return;
+    }
+
+    // If all components are percentage (max 100), average them; otherwise sum
+    let finalScore = allPct && count > 0 ? Math.round(total / count * 10) / 10 : Math.round(total * 10) / 10;
+    totalEl.textContent = finalScore;
+
+    // CBC Grading System
+    let grade, cls, points;
+    if (finalScore >= 80)      { grade = 'EE1'; points = 8; cls = 'badge badge-ee1'; }
+    else if (finalScore >= 70) { grade = 'EE2'; points = 7; cls = 'badge badge-ee2'; }
+    else if (finalScore >= 60) { grade = 'ME1'; points = 6; cls = 'badge badge-me1'; }
+    else if (finalScore >= 50) { grade = 'ME2'; points = 5; cls = 'badge badge-me2'; }
+    else if (finalScore >= 40) { grade = 'AE1'; points = 4; cls = 'badge badge-ae1'; }
+    else if (finalScore >= 30) { grade = 'AE2'; points = 3; cls = 'badge badge-ae2'; }
+    else if (finalScore >= 20) { grade = 'BE1'; points = 2; cls = 'badge badge-be1'; }
+    else                       { grade = 'BE2'; points = 1; cls = 'badge badge-be2'; }
+    gradeEl.textContent = grade;
+    gradeEl.className = cls;
+    const ptsEl = document.getElementById('points_' + studentId);
+    if (ptsEl) ptsEl.textContent = points;
+
+    updateFilledCount();
+}
+
+function updateFilledCount() {
+    const rows = document.querySelectorAll('tr[data-student]');
+    let filled = 0;
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll('.marks-input');
+        const hasValue = Array.from(inputs).some(inp => inp.value !== '');
+        if (hasValue) filled++;
+    });
+    const el = document.getElementById('filledCount');
+    if (el) el.textContent = filled;
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', function() {
+    updateFilledCount();
+    // Auto-recalc all rows with existing data
+    document.querySelectorAll('tr[data-student]').forEach(row => {
+        recalcRow(parseInt(row.dataset.student));
+    });
+});
+</script>
+{% endblock %}

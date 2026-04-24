@@ -1,0 +1,665 @@
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    margin: 0;
+    background: #ffffff;
+}
+
+* {
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+body {
+    color: #1f2937;
+}
+
+svg {
+    display: block;
+}
+
+.fixed {
+    position: fixed;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.relative {
+    position: relative;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.mx-4 {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mb-5 {
+    margin-bottom: 1.25rem;
+}
+
+.mt-1 {
+    margin-top: 0.25rem;
+}
+
+.p-2 {
+    padding: 0.5rem;
+}
+
+.p-6 {
+    padding: 1.5rem;
+}
+
+.px-3 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.px-5 {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+.px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+.px-8 {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.py-1 {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.py-2\.5 {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+}
+
+.py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.space-y-5 > * + * {
+    margin-top: 1.25rem;
+}
+
+.pt-2 {
+    padding-top: 0.5rem;
+}
+
+.top-4 {
+    top: 1rem;
+}
+
+.right-0 {
+    right: 0;
+}
+
+.right-4 {
+    right: 1rem;
+}
+
+.bottom-0 {
+    bottom: 0;
+}
+
+.left-0 {
+    left: 0;
+}
+
+.inset-0 {
+    inset: 0;
+}
+
+.z-10 {
+    z-index: 10;
+}
+
+.z-40 {
+    z-index: 40;
+}
+
+.z-50 {
+    z-index: 50;
+}
+
+.z-\[70\] {
+    z-index: 70;
+}
+
+.max-w-sm {
+    max-width: 24rem;
+}
+
+.max-w-lg {
+    max-width: 32rem;
+}
+
+.rounded {
+    border-radius: 0.25rem;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.rounded-xl {
+    border-radius: 0.75rem;
+}
+
+.rounded-2xl {
+    border-radius: 1rem;
+}
+
+.rounded-full {
+    border-radius: 9999px;
+}
+
+.border {
+    border: 1px solid #d1d5db;
+}
+
+.border-b {
+    border-bottom: 1px solid #d6d3d1;
+}
+
+.border-t {
+    border-top: 1px solid #d6d3d1;
+}
+
+.border-gray-200 {
+    border-color: #e5e7eb;
+}
+
+.border-gray-300 {
+    border-color: #d1d5db;
+}
+
+.border-gray-400 {
+    border-color: #9ca3af;
+}
+
+.border-red-200 {
+    border-color: #fecaca;
+}
+
+.border-emerald-200 {
+    border-color: #a7f3d0;
+}
+
+.border-stone-200 {
+    border-color: #e7e5e4;
+}
+
+.bg-white {
+    background: #ffffff;
+}
+
+.bg-white\/25,
+.bg-black\/25 {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.bg-black\/40 {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.bg-gray-50 {
+    background: #f9fafb;
+}
+
+.bg-gray-100 {
+    background: #f3f4f6;
+}
+
+.bg-red-50 {
+    background: #fef2f2;
+}
+
+.bg-red-100 {
+    background: #fee2e2;
+}
+
+.bg-red-600 {
+    background: #dc2626;
+}
+
+.bg-red-700 {
+    background: #b91c1c;
+}
+
+.bg-emerald-50 {
+    background: #ecfdf5;
+}
+
+.bg-emerald-100 {
+    background: #d1fae5;
+}
+
+.bg-emerald-600 {
+    background: #059669;
+}
+
+.bg-emerald-700 {
+    background: #047857;
+}
+
+.bg-amber-50 {
+    background: #fffbeb;
+}
+
+.bg-amber-100 {
+    background: #fef3c7;
+}
+
+.bg-amber-500 {
+    background: #f59e0b;
+}
+
+.bg-amber-600 {
+    background: #d97706;
+}
+
+.bg-amber-700 {
+    background: #b45309;
+}
+
+.bg-stone-50 {
+    background: #fafaf9;
+}
+
+.text-white {
+    color: #ffffff;
+}
+
+.text-gray-400 {
+    color: #9ca3af;
+}
+
+.text-gray-500 {
+    color: #6b7280;
+}
+
+.text-gray-600 {
+    color: #4b5563;
+}
+
+.text-gray-700 {
+    color: #374151;
+}
+
+.text-red-600 {
+    color: #dc2626;
+}
+
+.text-red-700 {
+    color: #b91c1c;
+}
+
+.text-emerald-600 {
+    color: #059669;
+}
+
+.text-emerald-700 {
+    color: #047857;
+}
+
+.text-amber-500 {
+    color: #f59e0b;
+}
+
+.text-amber-600 {
+    color: #d97706;
+}
+
+.text-stone-400 {
+    color: #a8a29e;
+}
+
+.text-stone-600 {
+    color: #57534e;
+}
+
+.text-stone-700 {
+    color: #44403c;
+}
+
+.text-stone-900 {
+    color: #1c1917;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-base {
+    font-size: 1rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+}
+
+.text-\[10px\] {
+    font-size: 10px;
+}
+
+.text-\[11px\] {
+    font-size: 11px;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.font-extrabold {
+    font-weight: 800;
+}
+
+.tracking-widest {
+    letter-spacing: 0.18em;
+}
+
+.tracking-\[0\.25em\] {
+    letter-spacing: 0.25em;
+}
+
+.uppercase {
+    text-transform: uppercase;
+}
+
+.leading-7 {
+    line-height: 1.75rem;
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.shadow-md {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+}
+
+.shadow-xl {
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.22);
+}
+
+.shadow-2xl {
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
+
+.transition {
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.hover\:bg-gray-50:hover {
+    background: #f9fafb;
+}
+
+.hover\:bg-gray-100:hover {
+    background: #f3f4f6;
+}
+
+.hover\:bg-red-50:hover {
+    background: #fef2f2;
+}
+
+.hover\:bg-stone-100:hover {
+    background: #f5f5f4;
+}
+
+.hover\:bg-red-700:hover {
+    background: #b91c1c;
+}
+
+.hover\:bg-emerald-700:hover {
+    background: #047857;
+}
+
+.hover\:bg-amber-700:hover {
+    background: #b45309;
+}
+
+.hover\:text-stone-600:hover {
+    color: #57534e;
+}
+
+.active\:bg-gray-100:active {
+    background: #f3f4f6;
+}
+
+.focus\:outline-none:focus {
+    outline: none;
+}
+
+.focus\:border-emerald-500:focus {
+    border-color: #10b981;
+}
+
+.shrink-0 {
+    flex-shrink: 0;
+}
+
+.flex-1 {
+    flex: 1 1 0%;
+}
+
+.h-4 {
+    height: 1rem;
+}
+
+.w-4 {
+    width: 1rem;
+}
+
+.h-5 {
+    height: 1.25rem;
+}
+
+.w-5 {
+    width: 1.25rem;
+}
+
+.h-6 {
+    height: 1.5rem;
+}
+
+.w-6 {
+    width: 1.5rem;
+}
+
+.h-12 {
+    height: 3rem;
+}
+
+.w-12 {
+    width: 3rem;
+}
+
+.h-6 {
+    height: 1.5rem;
+}
+
+.w-20 {
+    width: 5rem;
+}
+
+.h-6 {
+    height: 1.5rem;
+}
+
+.h-full {
+    height: 100%;
+}
+
+.login-screen {
+    background:
+        radial-gradient(circle at top left, rgba(5, 150, 105, 0.1), transparent 28rem),
+        radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.08), transparent 24rem),
+        #ffffff;
+}
+
+.login-screen > .relative {
+    width: min(100%, 24rem);
+    max-width: 24rem;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+    padding: 2rem 1.75rem;
+}
+
+.login-screen form {
+    width: 100%;
+}
+
+.login-screen form > div {
+    display: flex;
+    align-items: center;
+}
+
+.login-screen form label {
+    width: 5rem;
+    flex-shrink: 0;
+}
+
+.login-screen form input[type="text"],
+.login-screen form input[type="password"] {
+    width: 100%;
+    flex: 1 1 auto;
+}
+
+.login-screen form svg {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    min-width: 1.25rem;
+    min-height: 1.25rem;
+    max-width: 1.25rem;
+    max-height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.fixed > button svg,
+#dbDialog svg,
+#restoreModal svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    max-width: 1.5rem;
+    max-height: 1.5rem;
+}
+
+#dbMenu {
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+#dbMenu button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+#restoreModal .bg-white,
+#dbDialog .bg-white {
+    background: #ffffff;
+}
+
+form input[type="text"],
+form input[type="password"],
+form input[type="file"] {
+    border-radius: 0.35rem;
+    min-height: 2.5rem;
+    box-sizing: border-box;
+}
+
+button {
+    cursor: pointer;
+}

@@ -1,0 +1,31 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | School Entry{% endblock %}
+
+{% block content %}
+    {% if school.logo_url %}
+    <div class="entry-watermark" aria-hidden="true">
+        <img src="{{ school.logo_url }}" alt="" class="entry-watermark-image">
+    </div>
+    {% endif %}
+    <div class="entry-cards">
+        {% for card in stat_cards %}
+        <section class="entry-stat-card entry-stat-card-{{ card.tone }}">
+            <div class="entry-stat-icon-box">
+                {% if card.icon == 'students' %}
+                <img src="{% static 'accounts/icons/student.png' %}" alt="" class="entry-stat-icon-image">
+                {% elif card.icon == 'teachers' %}
+                <img src="{% static 'accounts/icons/teacher.png' %}" alt="" class="entry-stat-icon-image">
+                {% else %}
+                <img src="{% static 'accounts/icons/class.png' %}" alt="" class="entry-stat-icon-image">
+                {% endif %}
+            </div>
+            <div class="entry-stat-text">
+                <div class="entry-stat-value">{{ card.value }}</div>
+                <div class="entry-stat-label">{{ card.label }}</div>
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+{% endblock %}

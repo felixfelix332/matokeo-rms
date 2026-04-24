@@ -1,0 +1,89 @@
+{% extends "portal/teacher/base.html" %}
+{% load humanize %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-extrabold text-gray-900">Welcome, {{ teacher.full_name }}</h2>
+    <p class="mt-1 text-sm text-gray-500">{% if active_term %}{{ active_term.session.session_name }} &mdash; Term {{ active_term.term }}{% endif %}</p>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 gap-4 lg:grid-cols-3">
+    <div class="stat-card rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
+        <p class="text-3xl font-extrabold text-gray-900">{{ total_students }}</p>
+        <p class="mt-1 text-xs font-medium text-gray-500">My Students</p>
+    </div>
+    <div class="stat-card rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
+        <p class="text-3xl font-extrabold text-emerald-600">{{ total_classes }}</p>
+        <p class="mt-1 text-xs font-medium text-gray-500">Assigned Classes</p>
+    </div>
+    <div class="stat-card rounded-2xl bg-white p-5 shadow-sm border border-gray-100">
+        <p class="text-3xl font-extrabold text-violet-600">{{ total_subjects }}</p>
+        <p class="mt-1 text-xs font-medium text-gray-500">Subjects</p>
+    </div>
+</div>
+
+<!-- My Classes -->
+<div class="mt-6">
+    <h3 class="text-sm font-bold text-gray-900 mb-4">My Classes</h3>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {% for c in assigned_classes %}
+        <a href="{% url 'portal:teacher_class_students' c.schoolclass_id %}" class="stat-card flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm border border-gray-100 no-underline hover:border-emerald-200">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-lg font-extrabold text-emerald-600 shrink-0">
+                {{ c.name|truncatechars:2 }}
+            </div>
+            <div>
+                <p class="text-sm font-bold text-gray-900">{{ c.name }}</p>
+                <p class="text-[10px] font-medium text-gray-500 uppercase">{{ c.level }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Class Performance Chart -->
+<div class="mt-6 rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+    <h3 class="text-sm font-bold text-gray-900">Class Performance</h3>
+    <p class="mt-1 text-xs text-gray-500">Average scores for my classes</p>
+    <div class="mt-4" style="height: 280px;">
+        <canvas id="classChart"></canvas>
+    </div>
+</div>
+
+<!-- Top Students -->
+<div class="mt-6 rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
+    <h3 class="text-sm font-bold text-gray-900 mb-4">Top Students</h3>
+    <div class="space-y-2">
+        {% for r in top_results %}
+        <div class="table-row flex items-center gap-3 rounded-xl px-3 py-2.5">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-extrabold {% if r.position == 1 %}bg-amber-100 text-amber-700{% elif r.position <= 3 %}bg-gray-100 text-gray-700{% else %}bg-gray-50 text-gray-500{% endif %}">{{ r.position }}</div>
+            <div class="flex-1 min-w-0">
+                <p class="truncate text-xs font-semibold text-gray-900">{{ r.student.full_name }}</p>
+                <p class="text-[10px] text-gray-500">{{ r.student.class_field.name }}</p>
+            </div>
+            <p class="text-sm font-bold text-gray-900">{{ r.average_score|floatformat:1 }}%</p>
+        </div>
+        {% empty %}
+        <p class="text-center text-xs text-gray-400 py-6">No results yet</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const data = {{ class_performance|safe }};
+    if (data.length) {
+        const colors = data.map(c => c.avg >= 70 ? '#22c55ecc' : c.avg >= 50 ? '#3b82f6cc' : '#f97316cc');
+        new Chart(document.getElementById('classChart'), {
+            type: 'bar',
+            data: { labels: data.map(d => d.name), datasets: [{ label: 'Average', data: data.map(d => d.avg), backgroundColor: colors, borderRadius: 8, borderSkipped: false }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } }, x: { grid: { display: false }, ticks: { font: { size: 10, weight: 600 } } } } }
+        });
+    }
+});
+</script>
+{% endblock %}

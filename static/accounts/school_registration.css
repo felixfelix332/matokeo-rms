@@ -1,0 +1,75 @@
+.registration-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+}
+
+.registration-title {
+    margin-top: -10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2b2b2b;
+}
+
+.registration-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 128px);
+    gap: 22px 26px;
+}
+
+.registration-tile {
+    min-height: 128px;
+    padding: 18px 12px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: #ffffff;
+    text-decoration: none;
+    box-shadow: none;
+}
+
+.registration-tile-term {
+    background: #22c7be;
+}
+
+.registration-tile-teachers {
+    background: #9fdd31;
+    color: #1c2b15;
+}
+
+.registration-tile-students {
+    background: #10951a;
+}
+
+.registration-tile-classes {
+    background: #aea7ea;
+    color: #2d2b4d;
+}
+
+.registration-tile-icon {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.registration-tile-icon svg {
+    width: 30px;
+    height: 30px;
+}
+
+.registration-tile-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.15;
+}
+
+.registration-tile.is-disabled {
+    cursor: default;
+}
