@@ -389,6 +389,14 @@ TEMPLATE_SECTION_REGISTRY = OrderedDict(
                                 "preview_template": "accounts/template_editor/sections/section_6/model_1.html",
                             },
                         ),
+                        (
+                            "model_2",
+                            {
+                                "label": "Model 2",
+                                "enabled": True,
+                                "preview_template": "accounts/template_editor/sections/section_6/model_2.html",
+                            },
+                        ),
                     ]
                 ),
             },
