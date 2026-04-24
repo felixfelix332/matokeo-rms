@@ -1,6 +1,10 @@
 from collections import OrderedDict
 
 
+# Contributor extension point:
+# Add report-card section models here first, then add the matching preview template.
+# Keep section coordination explicit so one model does not silently replace another
+# section's source of truth.
 TEMPLATE_SECTION_REGISTRY = OrderedDict(
     [
         (

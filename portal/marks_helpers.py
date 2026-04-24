@@ -110,6 +110,9 @@ def compute_grade(score):
     EE1=8pts (80-100), EE2=7pts (70-79), ME1=6pts (60-69), ME2=5pts (50-59),
     AE1=4pts (40-49), AE2=3pts (30-39), BE1=2pts (20-29), BE2=1pt (0-19).
     """
+    # Contributor extension point:
+    # Replace this hardcoded scale with configurable grading profiles before
+    # adding more country-specific grading rules.
     if score is None:
         return '', 0
     s = float(score)
