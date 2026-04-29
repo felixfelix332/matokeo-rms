@@ -1,7 +1,15 @@
 import os
+import sys
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(
+    os.getenv(
+        'MATOKEO_CODE_ROOT',
+        getattr(sys, '_MEIPASS', Path(__file__).resolve().parent.parent),
+    )
+)
+DATA_DIR = Path(os.getenv('MATOKEO_DATA_DIR', BASE_DIR))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'matokeo-rms-dev-key-change-in-production-2026')
 DEBUG = os.getenv('DJANGO_DEBUG', '1').lower() in {'1', 'true', 'yes'}
@@ -53,11 +61,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'matokeo_auth.sqlite3',
+        'NAME': DATA_DIR / 'matokeo_auth.sqlite3',
     },
     'school_data': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'school_data.sqlite3',
+        'NAME': DATA_DIR / 'school_data.sqlite3',
     },
 }
 

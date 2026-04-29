@@ -19,6 +19,11 @@ ENV/
 db.sqlite3
 staticfiles/
 media/
+build/
+dist/
+*.exe
+*.msi
+*.zip
 
 # Environment and secrets
 .env

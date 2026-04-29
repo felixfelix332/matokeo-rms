@@ -113,6 +113,39 @@ Open `http://127.0.0.1:8000/` in your browser.
 
 Local SQLite databases are intentionally ignored by Git. Each developer should create their own local data or import a safe sample dataset when one becomes available.
 
+## Desktop App Packaging
+
+Matokeo RMS can also run as an offline-first Windows desktop app. The desktop launcher starts the Django app locally, opens it in a desktop window, and stores user data in a local `data/` folder beside the installed app.
+
+Build requirements:
+
+- Windows.
+- Python 3.12 or 3.13 is recommended for release builds.
+- Python with `python -m pip` available.
+- Inno Setup 6 if you want a `.exe` installer.
+
+Build the desktop bundle:
+
+```powershell
+.\scripts\build_windows_desktop.ps1
+```
+
+Outputs:
+
+- `dist\MatokeoRMS\` contains the desktop app bundle.
+- `dist\installer\` contains the installer when Inno Setup is installed.
+
+The first desktop run creates local SQLite databases and a default admin account if no users exist:
+
+```text
+Username: admin
+Password: admin123
+```
+
+Change this password immediately before using the app with real school data. Generated installers and app bundles should be uploaded to GitHub Releases or the MunTech website download page, not committed to the repository.
+
+The default desktop launcher opens Matokeo in a local browser/app-mode window. A native embedded desktop window can be enabled later with `pywebview` on Python versions where its Windows dependencies are available.
+
 ## Project Structure
 
 ```text
