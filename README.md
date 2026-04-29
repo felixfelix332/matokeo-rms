@@ -138,17 +138,17 @@ Outputs:
 To publish a downloadable installer on GitHub, push a version tag:
 
 ```powershell
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
-GitHub Actions will build `Matokeo-RMS-Setup-0.1.1.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
+GitHub Actions will build `Matokeo-RMS-Setup-0.1.2.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
 
 Current direct installer download:
 
-- [Matokeo-RMS-Setup-0.1.1.exe](releases/Matokeo-RMS-Setup-0.1.1.exe)
+- [Matokeo-RMS-Setup-0.1.2.exe](releases/Matokeo-RMS-Setup-0.1.2.exe)
 
-If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.1` and update the installer in `releases/`.
+If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.2` and update the installer in `releases/`.
 
 The first desktop run creates local SQLite databases and a default admin account if no users exist:
 
