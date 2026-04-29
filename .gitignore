@@ -24,6 +24,8 @@ dist/
 *.exe
 *.msi
 *.zip
+!releases/
+!releases/*.exe
 
 # Environment and secrets
 .env

@@ -144,6 +144,12 @@ git push origin v0.1.0
 
 GitHub Actions will build `Matokeo-RMS-Setup-0.1.0.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
 
+Current direct installer download:
+
+- [Matokeo-RMS-Setup-0.1.0.exe](releases/Matokeo-RMS-Setup-0.1.0.exe)
+
+If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.0` and update the installer in `releases/`.
+
 The first desktop run creates local SQLite databases and a default admin account if no users exist:
 
 ```text
