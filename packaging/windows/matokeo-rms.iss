@@ -30,6 +30,7 @@ Source: "..\..\dist\MatokeoRMS\*"; DestDir: "{app}"; Flags: ignoreversion recurs
 
 [Icons]
 Name: "{group}\Matokeo RMS"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\Reset Admin Password"; Filename: "{app}\{#MyAppExeName}"; Parameters: "--reset-admin-password"
 Name: "{autodesktop}\Matokeo RMS"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]

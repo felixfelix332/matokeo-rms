@@ -33,6 +33,7 @@
                                 <th>username</th>
                                 <th>password</th>
                                 <th>level</th>
+                                <th>status</th>
                                 <th>Limits</th>
                                 <th style="width: 64px;"></th>
                             </tr>
@@ -44,9 +45,9 @@
                                 <td>{{ user.username }}</td>
                                 <td>{{ user.password_label }}</td>
                                 <td>{{ user.role }}</td>
+                                <td>{{ user.status }}</td>
                                 <td>{{ user.limits }}</td>
                                 <td>
-                                    {% if user.username != "admin" %}
                                     <form method="post" onsubmit="return confirm('Delete user {{ user.username|escapejs }}?')">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete">
@@ -55,49 +56,124 @@
                                             <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/x-circle-fill.svg' %}')"></span>
                                         </button>
                                     </form>
-                                    {% endif %}
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
                                 <td></td>
-                                <td colspan="5">No users found.</td>
+                                <td colspan="6">No users found.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
 
-                <form method="post" class="settings-user-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="create">
-                    <fieldset>
-                        <legend>New User</legend>
-                        <div class="settings-user-row">
-                            <label for="newUsername">Username</label>
-                            <input id="newUsername" class="settings-input" type="text" name="username">
-                        </div>
-                        <div class="settings-user-row">
-                            <label for="newPassword">Password</label>
-                            <input id="newPassword" class="settings-input" type="password" name="password">
-                        </div>
-                        <div class="settings-user-row">
-                            <label for="newRole">User Level</label>
-                            <select id="newRole" class="settings-select" name="role">
-                                <option value="Admin">Admin</option>
-                                <option value="User">User</option>
-                            </select>
-                        </div>
-                        <div class="settings-submit-row">
-                            <button type="submit" class="settings-save-button is-purple">
-                                <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/add.svg' %}')"></span>
-                                Add
-                            </button>
-                        </div>
-                    </fieldset>
-                </form>
+                <div class="settings-user-forms">
+                    <form method="post" class="settings-user-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create">
+                        <fieldset>
+                            <legend>New User</legend>
+                            <div class="settings-user-row">
+                                <label for="newUsername">Username</label>
+                                <input id="newUsername" class="settings-input" type="text" name="username">
+                            </div>
+                            <div class="settings-user-row">
+                                <label for="newPassword">Password</label>
+                                <input id="newPassword" class="settings-input" type="password" name="password">
+                            </div>
+                            <div class="settings-user-row">
+                                <label for="newRole">User Level</label>
+                                <select id="newRole" class="settings-select" name="role">
+                                    <option value="Admin">Admin</option>
+                                    <option value="User">User</option>
+                                </select>
+                            </div>
+                            <div class="settings-submit-row">
+                                <button type="submit" class="settings-save-button is-purple">
+                                    <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/add.svg' %}')"></span>
+                                    Add
+                                </button>
+                            </div>
+                        </fieldset>
+                    </form>
+
+                    <form method="post" class="settings-user-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update">
+                        <fieldset>
+                            <legend>Update User</legend>
+                            <div class="settings-user-row">
+                                <label for="editUserId">User</label>
+                                <select id="editUserId" class="settings-select" name="user_id">
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}"
+                                            data-username="{{ user.username }}"
+                                            data-role="{{ user.role }}"
+                                            data-status="{% if user.status == 'Active' %}active{% else %}disabled{% endif %}">
+                                        {{ user.username }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="settings-user-row">
+                                <label for="editUsername">Username</label>
+                                <input id="editUsername" class="settings-input" type="text" name="edit_username">
+                            </div>
+                            <div class="settings-user-row">
+                                <label for="editPassword">Password</label>
+                                <input id="editPassword" class="settings-input" type="password" name="edit_password" placeholder="Leave blank to keep">
+                            </div>
+                            <div class="settings-user-row">
+                                <label for="editRole">User Level</label>
+                                <select id="editRole" class="settings-select" name="edit_role">
+                                    <option value="Admin">Admin</option>
+                                    <option value="User">User</option>
+                                </select>
+                            </div>
+                            <div class="settings-user-row">
+                                <label for="editStatus">Status</label>
+                                <select id="editStatus" class="settings-select" name="edit_status">
+                                    <option value="active">Active</option>
+                                    <option value="disabled">Disabled</option>
+                                </select>
+                            </div>
+                            <div class="settings-submit-row">
+                                <button type="submit" class="settings-save-button">Save User</button>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_body %}
+<script>
+    (function () {
+        var userSelect = document.getElementById('editUserId');
+        var usernameInput = document.getElementById('editUsername');
+        var roleSelect = document.getElementById('editRole');
+        var statusSelect = document.getElementById('editStatus');
+        var passwordInput = document.getElementById('editPassword');
+
+        function syncSelectedUser() {
+            if (!userSelect || !userSelect.selectedOptions.length) {
+                return;
+            }
+            var option = userSelect.selectedOptions[0];
+            usernameInput.value = option.dataset.username || '';
+            roleSelect.value = option.dataset.role || 'User';
+            statusSelect.value = option.dataset.status || 'active';
+            passwordInput.value = '';
+        }
+
+        if (userSelect) {
+            userSelect.addEventListener('change', syncSelectedUser);
+            syncSelectedUser();
+        }
+    }());
+</script>
 {% endblock %}

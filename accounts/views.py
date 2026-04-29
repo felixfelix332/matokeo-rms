@@ -9,13 +9,19 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 
+from .auth_defaults import (
+    DEFAULT_ADMIN_PASSWORD,
+    DEFAULT_ADMIN_USERNAME,
+    ensure_default_admin_user,
+    is_default_admin_password,
+)
 from .services.template_editor_state import (
     DEFAULT_TEMPLATE_NAME,
     JUNIOR_SECONDARY_TEMPLATE_NAME,
@@ -2035,10 +2041,21 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
+        if (
+            username.lower() == DEFAULT_ADMIN_USERNAME
+            and password == DEFAULT_ADMIN_PASSWORD
+        ):
+            ensure_default_admin_user()
+            username = DEFAULT_ADMIN_USERNAME
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
             request.session['user_role'] = 'admin'
+            if is_default_admin_password(user):
+                messages.warning(
+                    request,
+                    'You are using the default admin password. Change it in Settings > Users before entering real school data.',
+                )
             return redirect(_school_setup_route())
         error = 'Invalid username or password.'
     return render(
@@ -3243,6 +3260,35 @@ def school_settings_email(request, school_id):
     )
 
 
+def _active_admin_count(user_model):
+    return user_model.objects.filter(is_active=True, is_superuser=True).count()
+
+
+def _would_remove_last_active_admin(user_model, user, *, is_active=None, is_superuser=None):
+    next_active = user.is_active if is_active is None else is_active
+    next_superuser = user.is_superuser if is_superuser is None else is_superuser
+    if not user.is_active or not user.is_superuser:
+        return False
+    if next_active and next_superuser:
+        return False
+    return _active_admin_count(user_model) <= 1
+
+
+def _settings_user_rows(user_model):
+    users = []
+    for user in user_model.objects.order_by('username'):
+        role = 'Admin' if user.is_superuser else 'User'
+        users.append({
+            'id': user.id,
+            'username': user.username,
+            'password_label': 'Hidden',
+            'role': role,
+            'status': 'Active' if user.is_active else 'Disabled',
+            'limits': 'No Limits' if role == 'Admin' else 'Limited Access',
+        })
+    return users
+
+
 def school_settings_users(request, school_id):
     """User management settings screen."""
     if not request.user.is_authenticated:
@@ -3267,33 +3313,62 @@ def school_settings_users(request, school_id):
             elif User.objects.filter(username__iexact=username).exists():
                 messages.error(request, 'That username is already in use.')
             else:
-                user = User(username=username, is_active=True, is_staff=True)
-                user.is_superuser = role == 'Admin'
+                is_admin = role == 'Admin'
+                user = User(username=username, is_active=True, is_staff=True, is_superuser=is_admin)
                 user.set_password(password)
                 user.save()
                 messages.success(request, 'User created successfully.')
+        elif action == 'update':
+            user_id = request.POST.get('user_id', '').strip()
+            username = request.POST.get('edit_username', '').strip()
+            password = request.POST.get('edit_password', '')
+            role = request.POST.get('edit_role', 'User').strip() or 'User'
+            status = request.POST.get('edit_status', 'active').strip() or 'active'
+            target_user = User.objects.filter(id=user_id).first()
+            if not target_user:
+                messages.error(request, 'User not found.')
+            elif not username:
+                messages.error(request, 'Username is required.')
+            elif User.objects.filter(username__iexact=username).exclude(id=target_user.id).exists():
+                messages.error(request, 'That username is already in use.')
+            else:
+                next_active = status == 'active'
+                next_superuser = role == 'Admin'
+                if target_user.id == request.user.id and not next_active:
+                    messages.error(request, 'You cannot disable the account you are currently using.')
+                elif _would_remove_last_active_admin(
+                    User,
+                    target_user,
+                    is_active=next_active,
+                    is_superuser=next_superuser,
+                ):
+                    messages.error(request, 'At least one active admin account is required.')
+                else:
+                    target_user.username = username
+                    target_user.is_active = next_active
+                    target_user.is_staff = True
+                    target_user.is_superuser = next_superuser
+                    if password:
+                        target_user.set_password(password)
+                    target_user.save()
+                    if target_user.id == request.user.id and password:
+                        update_session_auth_hash(request, target_user)
+                    messages.success(request, 'User updated successfully.')
         elif action == 'delete':
             user_id = request.POST.get('user_id', '').strip()
             target_user = User.objects.filter(id=user_id).first()
             if not target_user:
                 messages.error(request, 'User not found.')
-            elif target_user.username.lower() == 'admin' or target_user.id == request.user.id:
-                messages.error(request, 'That user cannot be deleted from here.')
+            elif target_user.id == request.user.id:
+                messages.error(request, 'You cannot delete the account you are currently using.')
+            elif _would_remove_last_active_admin(User, target_user, is_active=False, is_superuser=False):
+                messages.error(request, 'At least one active admin account is required.')
             else:
                 target_user.delete()
                 messages.success(request, 'User deleted successfully.')
         return redirect('accounts:school_settings_users', school_id=school['id'])
 
-    users = []
-    for user in User.objects.order_by('username'):
-        role = 'Admin' if user.is_superuser else 'User'
-        users.append({
-            'id': user.id,
-            'username': user.username,
-            'password_label': 'Hidden',
-            'role': role,
-            'limits': 'No Limits' if role == 'Admin' else 'Limited Access',
-        })
+    users = _settings_user_rows(User)
 
     return render(
         request,

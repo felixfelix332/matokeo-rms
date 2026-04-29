@@ -139,10 +139,25 @@ The first desktop run creates local SQLite databases and a default admin account
 
 ```text
 Username: admin
-Password: admin123
+Password: admin
 ```
 
-Change this password immediately before using the app with real school data. Generated installers and app bundles should be uploaded to GitHub Releases or the MunTech website download page, not committed to the repository.
+Change this password immediately before using the app with real school data. Matokeo protects the app from simple lockouts by blocking actions that would remove the last active admin account.
+
+If a school forgets the admin password, use one of these local recovery options on the same machine where the school data lives:
+
+```powershell
+python manage.py reset_admin_password
+```
+
+For a source checkout, double-click `reset-admin-password.bat`. For an installed Windows desktop build, use the Start Menu shortcut named `Reset Admin Password`. Recovery resets or recreates:
+
+```text
+Username: admin
+Password: admin
+```
+
+Generated installers and app bundles should be uploaded to GitHub Releases or the MunTech website download page, not committed to the repository.
 
 The default desktop launcher opens Matokeo in a local browser/app-mode window. A native embedded desktop window can be enabled later with `pywebview` on Python versions where its Windows dependencies are available.
 

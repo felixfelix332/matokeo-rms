@@ -24,7 +24,7 @@ Invoke-Checked python @("-m", "pip", "install", "--upgrade", "pip")
 Invoke-Checked python @("-m", "pip", "install", "-r", "requirements-desktop.txt")
 
 Invoke-Checked python @("manage.py", "check")
-Invoke-Checked python @("-m", "PyInstaller", "--clean", ".\packaging\windows\MatokeoRMS.spec")
+Invoke-Checked python @("-m", "PyInstaller", "--noconfirm", "--clean", ".\packaging\windows\MatokeoRMS.spec")
 
 $iscc = Get-Command iscc -ErrorAction SilentlyContinue
 if (-not $iscc) {

@@ -14,13 +14,11 @@ import subprocess
 import sys
 import threading
 import time
-import webbrowser
 from pathlib import Path
+import webbrowser
 
 
 APP_NAME = "Matokeo RMS"
-DEFAULT_ADMIN_USERNAME = "admin"
-DEFAULT_ADMIN_PASSWORD = "admin123"
 
 
 def _is_frozen() -> bool:
@@ -71,19 +69,14 @@ def _wait_for_server(port: int, timeout_seconds: float = 20.0) -> None:
 def initialize_local_data() -> None:
     import django
     from django.conf import settings
-    from django.contrib.auth import get_user_model
     from django.core.management import call_command
 
     django.setup()
     call_command("migrate", database="default", interactive=False, verbosity=0)
 
-    user_model = get_user_model()
-    if not user_model.objects.exists():
-        user_model.objects.create_superuser(
-            username=DEFAULT_ADMIN_USERNAME,
-            email="",
-            password=DEFAULT_ADMIN_PASSWORD,
-        )
+    from accounts.auth_defaults import ensure_default_admin_user
+
+    ensure_default_admin_user()
 
     from accounts.views import _ensure_class_data_schema, _ensure_settings_schema
 
@@ -95,6 +88,36 @@ def initialize_local_data() -> None:
         conn.commit()
     finally:
         conn.close()
+
+
+def reset_desktop_admin_password() -> None:
+    configure_environment()
+
+    import django
+    from django.core.management import call_command
+
+    django.setup()
+    call_command("migrate", database="default", interactive=False, verbosity=0)
+
+    from accounts.auth_defaults import DEFAULT_ADMIN_PASSWORD, DEFAULT_ADMIN_USERNAME, reset_default_admin_password
+
+    reset_default_admin_password()
+    message = (
+        f"Matokeo RMS admin password has been reset.\n\n"
+        f"Username: {DEFAULT_ADMIN_USERNAME}\n"
+        f"Password: {DEFAULT_ADMIN_PASSWORD}\n\n"
+        "Change this password after signing in."
+    )
+    try:
+        import tkinter
+        from tkinter import messagebox
+
+        root = tkinter.Tk()
+        root.withdraw()
+        messagebox.showinfo(APP_NAME, message)
+        root.destroy()
+    except Exception:
+        print(message)
 
 
 def run_server(port: int) -> None:
@@ -129,6 +152,10 @@ def open_desktop_window(url: str) -> None:
 
 
 def main() -> None:
+    if "--reset-admin-password" in sys.argv:
+        reset_desktop_admin_password()
+        return
+
     configure_environment()
     initialize_local_data()
     port = _find_free_port()

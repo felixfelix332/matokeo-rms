@@ -287,7 +287,7 @@
 
 .settings-users-workspace {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 350px;
+    grid-template-columns: minmax(0, 1fr) 390px;
     gap: 34px;
     align-items: start;
 }
@@ -329,9 +329,15 @@
     justify-items: center;
 }
 
-.settings-user-form {
+.settings-user-forms {
     border-left: 1px solid #d8d8d8;
     padding: 16px 0 24px 24px;
+    display: grid;
+    gap: 22px;
+}
+
+.settings-user-form {
+    margin: 0;
 }
 
 .settings-user-form legend {
@@ -342,7 +348,7 @@
 
 .settings-user-row {
     display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-columns: 104px minmax(0, 1fr);
     gap: 12px;
     align-items: center;
     margin-bottom: 14px;
@@ -365,7 +371,7 @@
         grid-template-columns: 1fr;
     }
 
-    .settings-user-form {
+    .settings-user-forms {
         border-left: 0;
         border-top: 1px solid #d8d8d8;
         padding: 18px 0 0;
