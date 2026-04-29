@@ -15,6 +15,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'matokeo-rms-dev-key-change-in-produ
 DEBUG = os.getenv('DJANGO_DEBUG', '1').lower() in {'1', 'true', 'yes'}
 ALLOWED_HOSTS = ['*']
 SITE_NAME = 'Matokeo RMS'
+IS_DESKTOP = os.getenv('MATOKEO_DESKTOP', '0').lower() in {'1', 'true', 'yes'}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -80,9 +81,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = DATA_DIR / 'staticfiles' if IS_DESKTOP else BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = DATA_DIR / 'media' if IS_DESKTOP else BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

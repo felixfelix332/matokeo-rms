@@ -1,8 +1,9 @@
 """Desktop launcher for Matokeo RMS.
 
 The desktop build runs the Django app on localhost and opens it in a
-native desktop window. User data lives beside the installed app in a
-``data`` folder so offline work stays on the user's machine.
+desktop-style window. Installed Windows builds store offline data in the
+current user's app-data folder because Program Files is not writable by
+normal users.
 """
 
 from __future__ import annotations
@@ -37,8 +38,24 @@ def _app_root() -> Path:
     return Path(__file__).resolve().parent
 
 
+def _user_data_root() -> Path:
+    base = os.getenv("LOCALAPPDATA") or os.getenv("APPDATA")
+    if base:
+        return Path(base) / "MunTech" / APP_NAME / "data"
+    return Path.home() / ".matokeo-rms" / "data"
+
+
+def _default_data_root() -> Path:
+    data_dir = os.getenv("MATOKEO_DATA_DIR")
+    if data_dir:
+        return Path(data_dir)
+    if _is_frozen():
+        return _user_data_root()
+    return _app_root() / "data"
+
+
 def configure_environment() -> Path:
-    data_root = Path(os.getenv("MATOKEO_DATA_DIR", _app_root() / "data")).resolve()
+    data_root = _default_data_root().resolve()
     data_root.mkdir(parents=True, exist_ok=True)
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
