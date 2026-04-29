@@ -28,15 +28,26 @@ Invoke-Checked python @("-m", "PyInstaller", "--noconfirm", "--clean", ".\packag
 
 $iscc = Get-Command iscc -ErrorAction SilentlyContinue
 if (-not $iscc) {
-    $candidate = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-    if (Test-Path $candidate) {
-        $iscc = Get-Item $candidate
+    $candidates = @(
+        "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+        "${env:ProgramFiles}\Inno Setup 6\ISCC.exe",
+        "${env:LOCALAPPDATA}\Programs\Inno Setup 6\ISCC.exe"
+    )
+    foreach ($candidate in $candidates) {
+        if (Test-Path $candidate) {
+            $iscc = Get-Item $candidate
+            break
+        }
     }
 }
 
 if ($iscc) {
     Write-Host "Building Windows installer with Inno Setup..." -ForegroundColor Cyan
-    & $iscc.Source "/DMyAppVersion=$Version" .\packaging\windows\matokeo-rms.iss
+    $isccPath = $iscc.Source
+    if (-not $isccPath) {
+        $isccPath = $iscc.FullName
+    }
+    Invoke-Checked $isccPath @("/DMyAppVersion=$Version", ".\packaging\windows\matokeo-rms.iss")
     Write-Host "Installer output: dist\installer" -ForegroundColor Green
 } else {
     Write-Host "Inno Setup was not found. Desktop bundle is ready at dist\MatokeoRMS." -ForegroundColor Yellow

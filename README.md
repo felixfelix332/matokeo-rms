@@ -135,6 +135,15 @@ Outputs:
 - `dist\MatokeoRMS\` contains the desktop app bundle.
 - `dist\installer\` contains the installer when Inno Setup is installed.
 
+To publish a downloadable installer on GitHub, push a version tag:
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions will build `Matokeo-RMS-Setup-0.1.0.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
+
 The first desktop run creates local SQLite databases and a default admin account if no users exist:
 
 ```text
