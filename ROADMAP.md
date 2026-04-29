@@ -37,7 +37,6 @@ Matokeo RMS is moving from a practical school result system toward a global, con
 
 ## Phase 5: Code Structure and Scalability
 
-- Split `portal/teacher_views.py` into smaller modules by workflow.
 - Split `accounts/views.py` into smaller school setup, data management, authentication, and shell modules.
 - Move direct SQL into selectors/repositories and keep view functions thin.
 - Prefer Django ORM models where the schema is stable.

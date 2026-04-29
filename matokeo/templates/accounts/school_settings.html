@@ -1,0 +1,26 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Settings{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_module_menu.css' %}">
+{% endblock %}
+
+{% block content_class %} module-menu-content{% endblock %}
+
+{% block content %}
+<section class="module-menu-page settings-menu-page" aria-labelledby="settingsTitle">
+    <a href="{{ close_href }}" class="module-menu-close" aria-label="Close Settings">x</a>
+    <h1 id="settingsTitle" class="module-menu-title">Settings</h1>
+
+    <div class="module-menu-grid module-menu-grid-settings" aria-label="Settings options">
+        {% for tile in settings_tiles %}
+        <a href="{{ tile.href }}" class="module-menu-tile module-menu-tile-{{ tile.tone }}">
+            <span class="module-menu-icon" style="--tile-icon: url('{% static tile.icon_path %}')" aria-hidden="true"></span>
+            <span class="module-menu-label">{{ tile.label }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

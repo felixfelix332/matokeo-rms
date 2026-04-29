@@ -1,0 +1,408 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Subjects{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_class_subjects.css' %}">
+{% endblock %}
+
+{% block content_class %} class-subjects-content{% endblock %}
+
+{% block content %}
+<section class="class-subjects-page" aria-labelledby="subjectsTitle">
+    <a href="{{ close_href }}" class="class-subjects-close" aria-label="Close Subjects">x</a>
+
+    <h1 id="subjectsTitle" class="class-subjects-title">Subjects</h1>
+
+    <div class="class-subjects-toolbar">
+        <form method="get" class="class-subjects-filter">
+            <label for="classSubjectClass">Class</label>
+            <select id="classSubjectClass" name="class_id" onchange="this.form.submit()">
+                {% for class_item in classes %}
+                <option value="{{ class_item.id }}" {% if selected_class_id == class_item.id|stringformat:"s" %}selected{% endif %}>
+                    {{ class_item.name }}
+                </option>
+                {% endfor %}
+            </select>
+            {% if search_query %}
+            <input type="hidden" name="q" value="{{ search_query }}">
+            {% endif %}
+        </form>
+
+        <div class="class-subjects-actions">
+            <button type="button" class="class-subjects-action class-subjects-action-import" data-class-subjects-open="importSubjectsModal">
+                <span class="class-subjects-action-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/import.svg' %}')"></span>
+                <span>Import Subjects</span>
+            </button>
+            <a class="class-subjects-action class-subjects-action-export" href="?class_id={{ selected_class_id }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}&export=1">
+                <span class="class-subjects-action-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/export.svg' %}')"></span>
+                <span>Export</span>
+            </a>
+            <button type="button" class="class-subjects-action class-subjects-action-primary" data-class-subjects-open="subjectRegModal">
+                <span class="class-subjects-action-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/add.svg' %}')"></span>
+                <span>Add Subject</span>
+            </button>
+            <button type="button" class="class-subjects-action class-subjects-action-primary" data-class-subjects-open="subjectGroupsModal">
+                <span class="class-subjects-action-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/group.svg' %}')"></span>
+                <span>Subject Group</span>
+            </button>
+        </div>
+    </div>
+
+    <form method="get" class="class-subjects-search">
+        <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+        <input type="search" name="q" value="{{ search_query }}" aria-label="Search subjects">
+        <button type="submit" aria-label="Search">
+            <span style="--action-icon: url('{% static 'accounts/icons/class_data/search.svg' %}')"></span>
+        </button>
+    </form>
+
+    <div class="class-subjects-table-wrap">
+        <table class="class-subjects-table">
+            <thead>
+                <tr>
+                    <th class="class-subjects-indicator-col"></th>
+                    <th>Name</th>
+                    <th>Subject Teacher</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="class-subjects-group-row">
+                    <td><span aria-hidden="true">^</span></td>
+                    <td colspan="2"></td>
+                </tr>
+                {% for subject in subjects %}
+                <tr class="class-subjects-data-row" data-subject-id="{{ subject.id }}">
+                    <td></td>
+                    <td>{{ subject.name }}</td>
+                    <td>{{ subject.teacher_name|default:"" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td></td>
+                    <td colspan="2" class="class-subjects-empty">No subjects found for this class yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="class-subjects-footerbar">
+        <div class="class-subjects-count">
+            <span>No. of Subjects:</span>
+            <strong>{{ subjects|length }}</strong>
+        </div>
+        <div class="class-subjects-move-actions">
+            <form method="post" id="moveSubjectForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="move_subject">
+                <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+                <input type="hidden" name="subject_id" id="moveSubjectId">
+                <input type="hidden" name="direction" id="moveSubjectDirection">
+            </form>
+            <button type="button" data-subject-move="up">
+                <span class="class-subjects-move-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/move-up.svg' %}')"></span>
+                <span>Move Up</span>
+            </button>
+            <button type="button" data-subject-move="down">
+                <span class="class-subjects-move-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/move-down.svg' %}')"></span>
+                <span>Move Down</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="class-subjects-modal-backdrop" id="subjectRegModal" hidden>
+        <form method="post" class="class-subjects-dialog class-subjects-dialog-subject" aria-labelledby="subjectRegTitle">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_subject">
+            <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+
+            <button type="button" class="class-subjects-dialog-close" data-class-subjects-close aria-label="Close Subject Registration">x</button>
+            <h2 id="subjectRegTitle">Subject Reg.</h2>
+
+            <label for="subjectName">Subject Name</label>
+            <input id="subjectName" name="subject_name" type="text" autocomplete="off">
+
+            <label for="subjectTeacher">Subject Teacher</label>
+            <select id="subjectTeacher" name="teacher_id">
+                <option value=""></option>
+                {% for teacher in teachers %}
+                <option value="{{ teacher.id }}">{{ teacher.name|default:"Teacher" }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="subjectGroup">Subject Group</label>
+            <select id="subjectGroup" name="subject_group_id">
+                <option value=""></option>
+                {% for group in subject_groups %}
+                <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="class-subjects-dialog-submit">Add</button>
+        </form>
+    </div>
+
+    <div class="class-subjects-modal-backdrop" id="subjectGroupsModal" hidden>
+        <div class="class-subjects-dialog class-subjects-dialog-groups" role="dialog" aria-modal="true" aria-labelledby="subjectGroupsTitle">
+            <button type="button" class="class-subjects-dialog-close" data-class-subjects-close aria-label="Close Subject Groups">x</button>
+            <h2 id="subjectGroupsTitle">Subject Groups</h2>
+
+            <div class="class-subjects-group-list-wrap">
+                <table class="class-subjects-group-list">
+                    <tbody>
+                        {% for group in subject_groups %}
+                        <tr class="class-subjects-group-option" data-subject-group-id="{{ group.id }}">
+                            <td>{{ group.name }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td class="class-subjects-empty">No subject groups yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <span class="class-subjects-group-add-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/add.svg' %}')" aria-hidden="true"></span>
+            </div>
+
+            <form method="post" class="class-subjects-group-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_subject_group">
+                <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+
+                <label for="subjectGroupName">Subject Group Name</label>
+                <input id="subjectGroupName" name="subject_group_name" type="text" autocomplete="off">
+
+                <label class="class-subjects-checkbox-row">
+                    <input type="checkbox" name="group_subsubjects_as_one" value="1">
+                    <span>Group sub-subjects as One Subject</span>
+                </label>
+                <label class="class-subjects-checkbox-row">
+                    <input type="checkbox" name="exclude_scores_from_total_average" value="1">
+                    <span>Exclude Scores from Total Average %</span>
+                </label>
+
+                <button type="submit" class="class-subjects-group-submit">Add</button>
+            </form>
+
+            <form method="post" id="deleteSubjectGroupForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_subject_group">
+                <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+                <input type="hidden" name="subject_group_id" id="deleteSubjectGroupId">
+            </form>
+            <button type="submit" form="deleteSubjectGroupForm" class="class-subjects-group-delete" aria-label="Delete selected subject group">
+                <span style="--action-icon: url('{% static 'accounts/icons/class_data/x-circle-fill.svg' %}')"></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="class-subjects-modal-backdrop" id="importSubjectsModal" hidden>
+        <form method="post" class="class-subjects-dialog class-subjects-dialog-import" aria-labelledby="importSubjectsTitle">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="import_subjects">
+            <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+
+            <button type="button" class="class-subjects-dialog-close" data-class-subjects-close aria-label="Close Import Subjects">x</button>
+            <h2 id="importSubjectsTitle">Import Subjects into {{ selected_class.name|default:"Selected Class" }}</h2>
+
+            <fieldset class="class-subjects-import-fieldset">
+                <legend>Import From</legend>
+                <div class="class-subjects-import-controls">
+                    <label for="importSession">Session</label>
+                    <select id="importSession" name="import_session_id" data-import-source-control>
+                        {% for session in sessions %}
+                        <option value="{{ session.id }}" {% if selected_session_id == session.id|stringformat:"s" %}selected{% endif %}>{{ session.session_name }}</option>
+                        {% empty %}
+                        <option value="">2026</option>
+                        {% endfor %}
+                    </select>
+                    <label for="importClass">Class</label>
+                    <select id="importClass" name="import_class_id" data-import-source-control>
+                        {% for class_item in classes %}
+                        <option value="{{ class_item.id }}" {% if import_class_id == class_item.id|stringformat:"s" %}selected{% endif %}>{{ class_item.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="class-subjects-import-search">
+                    <input id="importSubjectSearch" type="search" aria-label="Filter import subjects">
+                    <span style="--action-icon: url('{% static 'accounts/icons/class_data/search.svg' %}')" aria-hidden="true"></span>
+                </div>
+
+                <div class="class-subjects-import-table-wrap">
+                    <table class="class-subjects-import-table">
+                        <thead>
+                            <tr>
+                                <th class="class-subjects-import-check"><input type="checkbox" id="importSelectAll" aria-label="Select all import subjects"></th>
+                                <th>Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in import_subjects %}
+                            <tr data-import-subject-row data-existing="{{ subject.already_in_selected_class|yesno:'1,0' }}">
+                                <td>
+                                    <input type="checkbox" name="subject_ids" value="{{ subject.id }}" {% if subject.already_in_selected_class %}disabled{% endif %}>
+                                </td>
+                                <td>{{ subject.name }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td></td>
+                                <td class="class-subjects-empty">No subjects are available to import.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </fieldset>
+
+            <div class="class-subjects-import-footer">
+                <button type="button" class="class-subjects-select-new">Select New Records only</button>
+                <button type="submit" class="class-subjects-import-submit">
+                    <span style="--action-icon: url('{% static 'accounts/icons/class_data/database-add.svg' %}')"></span>
+                    <span>Import</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script>
+(function () {
+    function openModal(id) {
+        var modal = document.getElementById(id);
+        if (modal) {
+            modal.hidden = false;
+        }
+    }
+
+    function closeModal(button) {
+        var modal = button.closest('.class-subjects-modal-backdrop');
+        if (modal) {
+            modal.hidden = true;
+        }
+    }
+
+    document.querySelectorAll('[data-class-subjects-open]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            openModal(button.getAttribute('data-class-subjects-open'));
+        });
+    });
+
+    document.querySelectorAll('[data-class-subjects-close]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            closeModal(button);
+        });
+    });
+
+    document.querySelectorAll('.class-subjects-modal-backdrop').forEach(function (modal) {
+        modal.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                modal.hidden = true;
+            }
+        });
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') {
+            return;
+        }
+        document.querySelectorAll('.class-subjects-modal-backdrop:not([hidden])').forEach(function (modal) {
+            modal.hidden = true;
+        });
+    });
+
+    var deleteGroupInput = document.getElementById('deleteSubjectGroupId');
+    document.querySelectorAll('.class-subjects-group-option').forEach(function (row) {
+        row.addEventListener('click', function () {
+            document.querySelectorAll('.class-subjects-group-option').forEach(function (item) {
+                item.classList.remove('is-selected');
+            });
+            row.classList.add('is-selected');
+            if (deleteGroupInput) {
+                deleteGroupInput.value = row.getAttribute('data-subject-group-id') || '';
+            }
+        });
+    });
+
+    var selectedSubjectId = '';
+    document.querySelectorAll('.class-subjects-data-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+            document.querySelectorAll('.class-subjects-data-row').forEach(function (item) {
+                item.classList.remove('is-selected');
+            });
+            row.classList.add('is-selected');
+            selectedSubjectId = row.getAttribute('data-subject-id') || '';
+        });
+    });
+
+    document.querySelectorAll('[data-subject-move]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var moveSubjectId = document.getElementById('moveSubjectId');
+            var moveDirection = document.getElementById('moveSubjectDirection');
+            var moveForm = document.getElementById('moveSubjectForm');
+            if (!selectedSubjectId || !moveSubjectId || !moveDirection || !moveForm) {
+                return;
+            }
+            moveSubjectId.value = selectedSubjectId;
+            moveDirection.value = button.getAttribute('data-subject-move') || '';
+            moveForm.submit();
+        });
+    });
+
+    var selectAll = document.getElementById('importSelectAll');
+    if (selectAll) {
+        selectAll.addEventListener('change', function () {
+            document.querySelectorAll('[data-import-subject-row] input[type="checkbox"]:not(:disabled)').forEach(function (box) {
+                box.checked = selectAll.checked;
+            });
+        });
+    }
+
+    var selectNewButton = document.querySelector('.class-subjects-select-new');
+    if (selectNewButton) {
+        selectNewButton.addEventListener('click', function () {
+            document.querySelectorAll('[data-import-subject-row]').forEach(function (row) {
+                var box = row.querySelector('input[type="checkbox"]');
+                if (box && !box.disabled) {
+                    box.checked = row.getAttribute('data-existing') !== '1';
+                }
+            });
+        });
+    }
+
+    var importSearch = document.getElementById('importSubjectSearch');
+    if (importSearch) {
+        importSearch.addEventListener('input', function () {
+            var query = importSearch.value.trim().toLowerCase();
+            document.querySelectorAll('[data-import-subject-row]').forEach(function (row) {
+                row.hidden = query && row.textContent.toLowerCase().indexOf(query) === -1;
+            });
+        });
+    }
+
+    document.querySelectorAll('[data-import-source-control]').forEach(function (control) {
+        control.addEventListener('change', function () {
+            var url = new URL(window.location.href);
+            var importSession = document.getElementById('importSession');
+            var importClass = document.getElementById('importClass');
+            url.searchParams.set('class_id', '{{ selected_class_id|escapejs }}');
+            url.searchParams.set('open_modal', 'import');
+            if (importSession) {
+                url.searchParams.set('import_session_id', importSession.value);
+            }
+            if (importClass) {
+                url.searchParams.set('import_class_id', importClass.value);
+            }
+            window.location.href = url.toString();
+        });
+    });
+
+    if ('{{ open_modal|escapejs }}' === 'import') {
+        openModal('importSubjectsModal');
+    }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,213 @@
+.module-menu-content {
+    padding: 22px 34px 18px;
+    overflow: hidden;
+}
+
+.module-menu-page {
+    min-height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+}
+
+.module-menu-close {
+    position: absolute;
+    top: -2px;
+    right: -18px;
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #d41483;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.module-menu-title {
+    margin: 0;
+    color: #111827;
+    font-size: clamp(2.1rem, 2.6vw, 3rem);
+    font-weight: 400;
+    line-height: 1.1;
+}
+
+.module-menu-grid {
+    width: 100%;
+    max-width: 860px;
+    margin-top: clamp(100px, 15vh, 150px);
+    display: grid;
+    justify-content: center;
+    gap: 34px;
+}
+
+.module-menu-grid-reports,
+.module-menu-grid-settings {
+    grid-template-columns: repeat(2, minmax(190px, 230px));
+}
+
+.module-menu-tile {
+    min-height: 182px;
+    border: 1px solid rgba(0, 0, 0, 0.28);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    text-decoration: none;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.module-menu-tile:hover,
+.module-menu-tile:focus-visible,
+.module-menu-tile.is-active {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(20, 30, 45, 0.16);
+    filter: saturate(1.04);
+    outline: none;
+}
+
+.module-menu-tile.is-active {
+    box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.55), 0 10px 22px rgba(20, 30, 45, 0.16);
+}
+
+.module-menu-icon {
+    width: 88px;
+    height: 88px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #eef7ff;
+}
+
+.module-menu-icon::before {
+    content: "";
+    width: 72px;
+    height: 72px;
+    display: block;
+    background: currentColor;
+    -webkit-mask: var(--tile-icon) center / contain no-repeat;
+    mask: var(--tile-icon) center / contain no-repeat;
+}
+
+.module-menu-label {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    color: inherit;
+    font-size: clamp(1rem, 1.05vw, 1.2rem);
+    font-weight: 500;
+    line-height: 1.16;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+
+.module-menu-tile-student-result,
+.module-menu-tile-school-details {
+    background: #078f8c;
+}
+
+.module-menu-tile-broadsheet-class,
+.module-menu-tile-school-email {
+    background: #9bd02b;
+}
+
+.module-menu-tile-subject-champions,
+.module-menu-tile-users {
+    background: #008800;
+}
+
+.module-menu-tile-broadsheet-subject,
+.module-menu-tile-headteacher {
+    background: #16c3c6;
+    color: #0f172a;
+}
+
+.module-menu-tile-broadsheet-subject .module-menu-icon,
+.module-menu-tile-headteacher .module-menu-icon {
+    color: #666a70;
+}
+
+.module-menu-panel {
+    width: min(860px, 100%);
+    margin-top: 30px;
+    padding: 16px 20px;
+    border: 1px solid #d1d5db;
+    background: #f8fafc;
+    color: #111827;
+}
+
+.module-menu-panel h2 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.module-menu-panel p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+.settings-summary-grid {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.settings-summary-grid div {
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.settings-summary-grid dt {
+    margin: 0 0 4px;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.settings-summary-grid dd {
+    margin: 0;
+    color: #111827;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+@media (max-width: 1280px) {
+    .module-menu-content {
+        padding: 18px 24px;
+    }
+
+    .module-menu-grid {
+        margin-top: 82px;
+        gap: 26px;
+    }
+}
+
+@media (max-width: 860px) {
+    .module-menu-content {
+        overflow: auto;
+    }
+
+    .module-menu-grid {
+        margin-top: 48px;
+        grid-template-columns: repeat(1, minmax(190px, 230px));
+    }
+
+    .settings-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}

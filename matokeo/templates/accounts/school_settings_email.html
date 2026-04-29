@@ -1,0 +1,60 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | School Email{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_settings_entry.css' %}">
+{% endblock %}
+
+{% block content_class %} settings-entry-content{% endblock %}
+
+{% block content %}
+<section class="settings-entry-page" aria-labelledby="emailTitle">
+    <a href="{{ close_href }}" class="settings-entry-close" aria-label="Close School Email">x</a>
+    <h1 id="emailTitle" class="settings-entry-title">School Email</h1>
+
+    {% if messages %}
+    <div class="settings-entry-messages">
+        {% for message in messages %}
+        <div class="settings-entry-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" class="settings-dialog settings-email-dialog">
+        {% csrf_token %}
+        <div class="settings-email-grid">
+            <div class="settings-token-box">
+                [SESSION]<br>
+                [TERM]<br>
+                [NAME]
+            </div>
+
+            <div class="settings-email-fields">
+                <div class="settings-email-row">
+                    <label for="emailSender">Sender</label>
+                    <input id="emailSender" class="settings-input" type="text" name="sender" value="{{ email_settings.sender }}">
+                </div>
+                <div class="settings-email-row">
+                    <label for="emailSubject">Subject</label>
+                    <input id="emailSubject" class="settings-input" type="text" name="subject" value="{{ email_settings.subject }}">
+                </div>
+                <div class="settings-email-row">
+                    <label for="emailBody">Body</label>
+                    <textarea id="emailBody" class="settings-textarea" name="body">{{ email_settings.body }}</textarea>
+                </div>
+            </div>
+
+            <button type="button" class="settings-gear" title="Email tokens">Tokens</button>
+        </div>
+
+        <div class="settings-submit-row">
+            <button type="submit" class="settings-save-button">
+                <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/subjects.svg' %}')"></span>
+                Save Changes
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}

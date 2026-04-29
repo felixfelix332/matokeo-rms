@@ -7,13 +7,55 @@ from django.utils.text import slugify
 from accounts.services.template_preview import get_default_selected_models, normalize_selected_models
 
 
+RESULT_TEMPLATE_AUTO = "Auto"
 DEFAULT_TEMPLATE_NAME = "Nursery (Default)"
+PRIMARY_TEMPLATE_NAME = "Primary (Default)"
+JUNIOR_SECONDARY_TEMPLATE_NAME = "Junior Secondary (Default)"
 DEFAULT_THEME_COLOR = "#d4147a"
 BUILT_IN_TEMPLATE_NAMES = [
     DEFAULT_TEMPLATE_NAME,
-    "Primary (Default)",
-    "Secondary (Default)",
+    PRIMARY_TEMPLATE_NAME,
+    JUNIOR_SECONDARY_TEMPLATE_NAME,
 ]
+_TEMPLATE_NAME_ALIASES = {
+    "auto": RESULT_TEMPLATE_AUTO,
+    "nursery": DEFAULT_TEMPLATE_NAME,
+    "nursery default": DEFAULT_TEMPLATE_NAME,
+    "nursery (default)": DEFAULT_TEMPLATE_NAME,
+    "primary": PRIMARY_TEMPLATE_NAME,
+    "primary default": PRIMARY_TEMPLATE_NAME,
+    "primary (default)": PRIMARY_TEMPLATE_NAME,
+    "secondary": JUNIOR_SECONDARY_TEMPLATE_NAME,
+    "secondary default": JUNIOR_SECONDARY_TEMPLATE_NAME,
+    "secondary (default)": JUNIOR_SECONDARY_TEMPLATE_NAME,
+    "junior secondary": JUNIOR_SECONDARY_TEMPLATE_NAME,
+    "junior secondary default": JUNIOR_SECONDARY_TEMPLATE_NAME,
+    "junior secondary (default)": JUNIOR_SECONDARY_TEMPLATE_NAME,
+}
+
+
+def normalize_template_name(template_name, allow_auto=False):
+    """Keep built-in template names canonical so defaults cannot be duplicated."""
+    raw_name = " ".join(str(template_name or "").strip().split())
+    if not raw_name:
+        return RESULT_TEMPLATE_AUTO if allow_auto else DEFAULT_TEMPLATE_NAME
+
+    normalized = _TEMPLATE_NAME_ALIASES.get(raw_name.lower())
+    if normalized == RESULT_TEMPLATE_AUTO and not allow_auto:
+        return DEFAULT_TEMPLATE_NAME
+    if normalized:
+        return normalized
+
+    for built_in_name in BUILT_IN_TEMPLATE_NAMES:
+        if raw_name.lower() == built_in_name.lower():
+            return built_in_name
+
+    return raw_name[:120]
+
+
+def list_result_template_choices(school_id=None):
+    template_names = list_template_editor_templates(school_id) if school_id is not None else list(BUILT_IN_TEMPLATE_NAMES)
+    return [RESULT_TEMPLATE_AUTO, *template_names]
 
 
 DEFAULT_OTHER_SETTINGS = {
@@ -171,8 +213,9 @@ DEFAULT_OTHER_SETTINGS = {
 
 
 def get_default_template_editor_state(template_name=DEFAULT_TEMPLATE_NAME):
+    template_name = normalize_template_name(template_name)
     return {
-        "template_name": template_name or DEFAULT_TEMPLATE_NAME,
+        "template_name": template_name,
         "selected_models": get_default_selected_models(),
         "theme_color": DEFAULT_THEME_COLOR,
         "other_settings": deepcopy(DEFAULT_OTHER_SETTINGS),
@@ -181,8 +224,15 @@ def get_default_template_editor_state(template_name=DEFAULT_TEMPLATE_NAME):
 
 
 def _state_path(school_id, template_name):
-    slug = slugify(template_name or DEFAULT_TEMPLATE_NAME) or "default"
+    slug = slugify(normalize_template_name(template_name)) or "default"
     return settings.MEDIA_ROOT / "template_editor" / f"school_{int(school_id)}" / f"{slug}.json"
+
+
+def _legacy_state_paths(school_id, template_name):
+    if normalize_template_name(template_name) != JUNIOR_SECONDARY_TEMPLATE_NAME:
+        return []
+    directory = settings.MEDIA_ROOT / "template_editor" / f"school_{int(school_id)}"
+    return [directory / f"{slugify('Secondary (Default)')}.json"]
 
 
 def _state_directory(school_id):
@@ -229,10 +279,11 @@ def _normalize_theme_color(value):
 
 
 def sanitize_template_editor_state(payload, template_name=DEFAULT_TEMPLATE_NAME):
+    template_name = normalize_template_name(template_name)
     default_state = get_default_template_editor_state(template_name)
     payload = _json_safe(payload if isinstance(payload, dict) else {})
     state = _deep_merge(default_state, payload)
-    state["template_name"] = template_name or DEFAULT_TEMPLATE_NAME
+    state["template_name"] = template_name
     state["theme_color"] = _normalize_theme_color(state.get("theme_color"))
     state["selected_models"] = normalize_selected_models(
         _deep_merge(default_state["selected_models"], state.get("selected_models", {}))
@@ -246,8 +297,10 @@ def sanitize_template_editor_state(payload, template_name=DEFAULT_TEMPLATE_NAME)
 
 
 def load_template_editor_state(school_id, template_name=DEFAULT_TEMPLATE_NAME):
-    path = _state_path(school_id, template_name)
-    if not path.exists():
+    template_name = normalize_template_name(template_name)
+    paths = [_state_path(school_id, template_name), *_legacy_state_paths(school_id, template_name)]
+    path = next((candidate for candidate in paths if candidate.exists()), None)
+    if not path:
         return get_default_template_editor_state(template_name)
 
     try:
@@ -259,6 +312,7 @@ def load_template_editor_state(school_id, template_name=DEFAULT_TEMPLATE_NAME):
 
 
 def save_template_editor_state(school_id, template_name, payload):
+    template_name = normalize_template_name(template_name)
     state = sanitize_template_editor_state(payload, template_name)
     path = _state_path(school_id, template_name)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -276,7 +330,7 @@ def list_template_editor_templates(school_id):
                 saved_state = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
                 continue
-            name = str(saved_state.get("template_name") or "").strip()
+            name = normalize_template_name(saved_state.get("template_name"))
             if name and name not in names:
                 names.append(name)
 

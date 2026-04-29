@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}{{ school.name }}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'accounts/school_entry.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="school-entry-page">
+    {% block body_extras %}{% endblock %}
+    <div class="entry-layout">
+        <aside class="entry-sidebar">
+            <div class="entry-sidebar-fill">
+                <div class="entry-sidebar-brand{% if not school.logo_url %} is-placeholder{% endif %}">
+                    {% if school.logo_url %}
+                    <img src="{{ school.logo_url }}" alt="{{ school.name }} logo" class="entry-sidebar-brand-image">
+                    {% else %}
+                    <div class="entry-sidebar-brand-placeholder">
+                        <div class="entry-sidebar-brand-mark">{{ school.abbreviation|default:'SCH' }}</div>
+                        <div class="entry-sidebar-brand-subtitle">School Logo</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <nav class="entry-nav">
+                {% for item in sidebar_items %}
+                <a href="{{ item.href }}" class="entry-nav-item{% if item.active %} is-active{% endif %}">
+                    <span class="entry-nav-icon">
+                        {% if item.icon == 'session' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 6h8M8 10h5m-6 8h7a3 3 0 0 0 3-3V9a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3Z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m10 12 2 2 4-4"/>
+                        </svg>
+                        {% elif item.icon == 'registration' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 4h14v16H5z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 2v4m8-4v4M8 10h8M8 14h3m5 0h0m-8 4h3m5 0h0"/>
+                        </svg>
+                        {% elif item.icon == 'template' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v14H4z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 9h16M8 13h3m-3 4h7"/>
+                        </svg>
+                        {% elif item.icon == 'class' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 18h16M7 16V8l5-4 5 4v8"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 13l2 2 4-5"/>
+                        </svg>
+                        {% elif item.icon == 'reports' %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 3h7l5 5v13H7z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 3v5h5M10 13h6M10 17h6M10 9h2"/>
+                        </svg>
+                        {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m0 12v3m9-9h-3M6 12H3m15.364 6.364-2.121-2.121M8.757 8.757 6.636 6.636m11.728 0-2.121 2.121M8.757 15.243l-2.121 2.121"/>
+                            <circle cx="12" cy="12" r="4"/>
+                        </svg>
+                        {% endif %}
+                    </span>
+                    <span class="entry-nav-text">{{ item.label }}</span>
+                </a>
+                {% endfor %}
+            </nav>
+        </aside>
+
+        <div class="entry-main">
+            <header class="entry-topbar">
+                <div class="entry-topbar-primary">
+                    <h1 class="entry-school-name">{{ school.name|upper }}</h1>
+                </div>
+                <div class="entry-topbar-meta">
+                    <div class="entry-check-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/>
+                        </svg>
+                    </div>
+                    <div class="entry-clock" id="entryClock">{{ current_stamp }}</div>
+                    {% block topbar_meta_extra %}{% endblock %}
+                </div>
+                <div class="entry-user-tile">
+                    <div class="entry-user-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 13a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 20a7.5 7.5 0 0 1 15 0"/>
+                        </svg>
+                    </div>
+                    <div class="entry-user-text">admin | Admin</div>
+                </div>
+                <a href="{% url 'accounts:logout' %}" class="entry-tool-tile">
+                    <span class="entry-tool-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 7V5a2 2 0 0 1 2-2h6v18h-6a2 2 0 0 1-2-2v-2"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12H4m0 0 3-3m-3 3 3 3"/>
+                        </svg>
+                    </span>
+                    <span>Log Out</span>
+                </a>
+                <div class="entry-tool-lite">
+                    <span class="entry-tool-lite-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <rect x="5" y="10" width="14" height="10" rx="2"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 10V7a4 4 0 1 1 8 0v3"/>
+                        </svg>
+                    </span>
+                    <span>License</span>
+                </div>
+                <div class="entry-tool-lite">
+                    <span class="entry-tool-lite-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.5 9a2.5 2.5 0 1 1 4.4 1.63c-.74.8-1.4 1.22-1.4 2.37"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
+                        </svg>
+                    </span>
+                    <span>Help</span>
+                </div>
+            </header>
+
+            <main class="entry-content{% block content_class %}{% endblock %}">
+                {% block content %}{% endblock %}
+            </main>
+
+            <footer class="entry-footer">
+                <div class="entry-trial-badge">TRIAL MODE</div>
+            </footer>
+        </div>
+    </div>
+    {% block after_layout %}{% endblock %}
+
+    <script>
+        (function () {
+            var clock = document.getElementById('entryClock');
+            if (!clock) {
+                return;
+            }
+
+            function updateClock() {
+                var now = new Date();
+                var formatted = now.toLocaleString('en-GB', {
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                }).replace(',', '');
+                clock.textContent = formatted;
+            }
+
+            updateClock();
+            window.setInterval(updateClock, 1000);
+        }());
+
+        (function () {
+            var messageSelector = [
+                '[data-auto-dismiss-message]',
+                '.class-registration-message',
+                '.settings-entry-message',
+                '.term-settings-message',
+                '.select-school-message'
+            ].join(',');
+
+            function getMessages() {
+                return Array.prototype.slice.call(document.querySelectorAll(messageSelector));
+            }
+
+            function hideMessage(message) {
+                message.classList.add('is-dismissed');
+                window.setTimeout(function () {
+                    if (message.parentNode) {
+                        message.parentNode.removeChild(message);
+                    }
+                }, 260);
+            }
+
+            getMessages().forEach(function (message) {
+                message.classList.add('entry-auto-message');
+                window.setTimeout(function () {
+                    hideMessage(message);
+                }, 3600);
+            });
+
+            window.addEventListener('pageshow', function (event) {
+                if (!event.persisted) {
+                    return;
+                }
+                getMessages().forEach(hideMessage);
+            });
+        }());
+    </script>
+    {% block extra_body %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,103 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Users{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_settings_entry.css' %}">
+{% endblock %}
+
+{% block content_class %} settings-entry-content{% endblock %}
+
+{% block content %}
+<section class="settings-entry-page" aria-labelledby="usersTitle">
+    <a href="{{ close_href }}" class="settings-entry-close" aria-label="Close Users">x</a>
+    <h1 id="usersTitle" class="settings-entry-title">Users</h1>
+
+    {% if messages %}
+    <div class="settings-entry-messages">
+        {% for message in messages %}
+        <div class="settings-entry-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="settings-dialog settings-dialog-wide">
+        <div class="settings-users-shell">
+            <div class="settings-users-workspace">
+                <div class="settings-table-wrap">
+                    <table class="settings-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 48px;"></th>
+                                <th>username</th>
+                                <th>password</th>
+                                <th>level</th>
+                                <th>Limits</th>
+                                <th style="width: 64px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{% if forloop.first %}&gt;{% endif %}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.password_label }}</td>
+                                <td>{{ user.role }}</td>
+                                <td>{{ user.limits }}</td>
+                                <td>
+                                    {% if user.username != "admin" %}
+                                    <form method="post" onsubmit="return confirm('Delete user {{ user.username|escapejs }}?')">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <button type="submit" class="settings-icon-button is-danger" aria-label="Delete {{ user.username }}">
+                                            <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/x-circle-fill.svg' %}')"></span>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td></td>
+                                <td colspan="5">No users found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <form method="post" class="settings-user-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create">
+                    <fieldset>
+                        <legend>New User</legend>
+                        <div class="settings-user-row">
+                            <label for="newUsername">Username</label>
+                            <input id="newUsername" class="settings-input" type="text" name="username">
+                        </div>
+                        <div class="settings-user-row">
+                            <label for="newPassword">Password</label>
+                            <input id="newPassword" class="settings-input" type="password" name="password">
+                        </div>
+                        <div class="settings-user-row">
+                            <label for="newRole">User Level</label>
+                            <select id="newRole" class="settings-select" name="role">
+                                <option value="Admin">Admin</option>
+                                <option value="User">User</option>
+                            </select>
+                        </div>
+                        <div class="settings-submit-row">
+                            <button type="submit" class="settings-save-button is-purple">
+                                <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/add.svg' %}')"></span>
+                                Add
+                            </button>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

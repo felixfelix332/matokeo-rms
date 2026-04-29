@@ -9,6 +9,7 @@ from .services.template_editor_state import (
     DEFAULT_TEMPLATE_NAME,
     list_template_editor_templates,
     load_template_editor_state,
+    normalize_template_name,
     save_template_editor_state,
 )
 from .services.template_preview import (
@@ -271,7 +272,7 @@ SECTION_5_CUSTOMIZE = {
 
 
 def _require_school_access(request, school_id):
-    if not request.user.is_authenticated and not request.session.get("teacher_id"):
+    if not request.user.is_authenticated:
         return None, redirect("accounts:login")
     school = get_school(school_id)
     if not school:
@@ -325,7 +326,7 @@ def template_editor_view(request, school_id):
     school, redirect_response = _require_school_access(request, school_id)
     if redirect_response:
         return redirect_response
-    selected_template = (request.GET.get("template") or DEFAULT_TEMPLATE_NAME).strip() or DEFAULT_TEMPLATE_NAME
+    selected_template = normalize_template_name(request.GET.get("template") or DEFAULT_TEMPLATE_NAME)
 
     if request.method == "POST":
         try:
@@ -333,7 +334,7 @@ def template_editor_view(request, school_id):
         except json.JSONDecodeError:
             return JsonResponse({"ok": False, "error": "Invalid JSON payload."}, status=400)
 
-        selected_template = (payload.get("template_name") or selected_template).strip() or DEFAULT_TEMPLATE_NAME
+        selected_template = normalize_template_name(payload.get("template_name") or selected_template)
         saved_state = save_template_editor_state(
             school.id,
             selected_template,
@@ -360,6 +361,7 @@ def template_editor_view(request, school_id):
         "template_options": template_options,
         "selected_template": selected_template,
         "preview_enabled": True,
+        "preview_only": request.GET.get("preview_only") == "1",
         "preview_disabled_reason": "",
         "selected_models": selected_models,
         "template_editor_state": template_state,

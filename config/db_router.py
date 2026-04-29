@@ -1,13 +1,12 @@
 class SchoolDataRouter:
     SCHOOL_MODELS = {
-        'portal_school', 'portal_academicsession', 'portal_term',
-        'portal_schoolclass', 'portal_subject', 'portal_student',
-        'portal_score', 'portal_resultsheet', 'portal_attendanceentry',
-        'portal_feepayment',
-        'teacher_teacheruser', 'teacher_teachersubjectclass',
-        'teacher_teacheruser_assigned_classes', 'teacher_teacheruser_assigned_subjects',
+        'rms_school', 'rms_academicsession', 'rms_term',
+        'rms_schoolclass', 'rms_subject', 'rms_student',
+        'rms_score', 'rms_resultsheet', 'rms_attendanceentry',
+        'rms_feepayment',
+        'rms_teacher', 'rms_teacher_assigned_subjects',
         'rps_schoolbranding',
-        'portal_studentattribute', 'rps_studentattribute',
+        'rms_studentattribute', 'rps_studentattribute',
     }
 
     def db_for_read(self, model, **hints):

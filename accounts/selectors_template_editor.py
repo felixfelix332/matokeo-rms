@@ -1,4 +1,4 @@
-from portal.models import School
+from matokeo.models import School
 
 
 def _media_url(relative_path):

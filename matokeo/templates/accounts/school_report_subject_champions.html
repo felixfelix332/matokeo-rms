@@ -1,0 +1,79 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Subject Champions{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_reports_entry.css' %}">
+{% endblock %}
+
+{% block content_class %} reports-entry-content{% endblock %}
+
+{% block content %}
+<section class="reports-entry-page" aria-labelledby="subjectChampionsTitle">
+    <a href="{{ close_href }}" class="reports-entry-close" aria-label="Close Subject Champions">x</a>
+    <h1 id="subjectChampionsTitle" class="reports-entry-title">Subject Champions</h1>
+
+    <div class="reports-entry-main-workspace">
+        <section class="reports-entry-panel">
+            <h2 class="reports-entry-table-heading">{{ report_heading }}</h2>
+            <div class="reports-entry-table-wrap">
+                <table class="reports-entry-table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Admission No.</th>
+                            <th>Name</th>
+                            <th>Score</th>
+                            <th>Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            <td>{{ row.subject }}</td>
+                            <td>{{ row.admission_number }}</td>
+                            <td>{{ row.student_name }}</td>
+                            <td>{{ row.score }}</td>
+                            <td>{{ row.position }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="reports-entry-empty">No subject champion data found for this class yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="reports-entry-export-row">
+                <a class="reports-entry-action" href="?{{ query_string }}{% if query_string %}&{% endif %}export=1">Export</a>
+            </div>
+        </section>
+
+        <form method="get" class="reports-entry-filter-card">
+            <h2>Filters</h2>
+            <label>
+                Class
+                <select name="class_id">
+                    {% for class_item in classes %}
+                    <option value="{{ class_item.id }}" {% if selected_class_id == class_item.id|stringformat:"s" %}selected{% endif %}>{{ class_item.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Term
+                <select name="term_id">
+                    {% for term in terms %}
+                    <option value="{{ term.id }}" {% if selected_term_id == term.id|stringformat:"s" %}selected{% endif %}>{{ term.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="reports-entry-check-label">
+                <input type="checkbox" name="cumulative" value="1" {% if cumulative %}checked{% endif %}>
+                <span>Cumulative</span>
+            </label>
+            <button type="submit" class="reports-entry-view-button">View</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

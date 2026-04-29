@@ -64,7 +64,7 @@ accounts/
   forms/
   views/
 
-portal/
+matokeo/
   grading/
   reports/
   templates/
@@ -76,8 +76,8 @@ portal/
 
 Recommended extraction targets:
 
-- Move grading logic from `portal/marks_helpers.py` into `portal/grading/`.
-- Split `portal/teacher_views.py` by workflow such as attendance, marks, reports, settings, users, and classes.
+- Move repeated grading and score helpers from large views into focused service modules.
+- Split `accounts/views.py` by workflow such as school setup, class data, reports, settings, users, and classes.
 - Move template-editor customization constants from `accounts/views_template_editor.py` into configuration modules or database-backed settings.
 - Add tests for `accounts/services/template_preview.py` because it controls active template behavior.
 

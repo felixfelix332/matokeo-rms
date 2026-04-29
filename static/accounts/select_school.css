@@ -25,6 +25,39 @@ body {
     margin-bottom: 8px;
 }
 
+.select-school-intro {
+    width: min(100%, 980px);
+    margin: 2px auto 22px;
+    text-align: center;
+}
+
+.select-school-kicker {
+    margin: 0;
+    color: #047857;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.select-school-intro h1 {
+    margin: 5px 0 0;
+    color: #111827;
+    font-size: clamp(1.8rem, 3vw, 3rem);
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: -0.045em;
+}
+
+.select-school-intro p:last-child {
+    margin: 8px auto 0;
+    max-width: 560px;
+    color: #4b5563;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    font-weight: 600;
+}
+
 .add-school-button {
     display: inline-flex;
     align-items: center;

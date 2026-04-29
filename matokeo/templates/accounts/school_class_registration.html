@@ -1,0 +1,93 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Class Registration{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_class_registration.css' %}">
+{% endblock %}
+
+{% block content_class %} class-registration-content{% endblock %}
+
+{% block content %}
+                <div class="class-registration-header">Class Registration</div>
+                {% if messages %}
+                <div class="class-registration-messages">
+                    {% for message in messages %}
+                    <div class="class-registration-message {% if 'error' in message.tags %}is-error{% elif 'success' in message.tags %}is-success{% endif %}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="class-registration-layout">
+                    <div class="class-registration-left">
+                        <a href="?mode=add" class="class-action-link{% if panel_mode == 'add' %} is-active{% endif %}">Add New Class</a>
+                        <a href="?mode=edit{% if selected_class_id %}&class_id={{ selected_class_id }}{% endif %}" class="class-action-link{% if panel_mode == 'edit' %} is-active{% endif %}">Edit Class</a>
+                        <a href="?mode=delete{% if selected_class_id %}&class_id={{ selected_class_id }}{% endif %}" class="class-action-link{% if panel_mode == 'delete' %} is-active{% endif %}">Delete Class</a>
+                        <button type="button" class="class-action-link class-action-link-disabled">Import Class(es)</button>
+                    </div>
+                    <div class="class-registration-table-wrap">
+                        <table class="class-registration-table">
+                            <thead>
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Class Teacher</th>
+                                    <th>PromotingClass</th>
+                                    <th>RepeatingClass</th>
+                                    <th>Result Template</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in classes %}
+                                <tr class="{% if selected_class_id == item.id|stringformat:'s' %}is-selected{% endif %}">
+                                    <td><a href="?mode={{ panel_mode }}&class_id={{ item.id }}" class="class-row-link">{{ item.name }}</a></td>
+                                    <td>{{ item.class_teacher_name|default:'' }}</td>
+                                    <td>{{ item.promoting_class|default:'' }}</td>
+                                    <td>{{ item.repeating_class|default:'' }}</td>
+                                    <td>{{ item.template_name|default:'' }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="class-registration-empty">No classes yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="class-registration-panel">
+                        <form method="post" class="class-registration-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="{{ panel_mode }}">
+                            <input type="hidden" name="class_id" value="{{ class_form.class_id|default:selected_class_id }}">
+                            <input type="hidden" name="current_name" value="{{ class_form.current_name }}">
+
+                            {% if panel_mode == 'edit' %}
+                            <label class="class-field-label">Current Class Name</label>
+                            <input type="text" class="class-field-input" value="{{ class_form.current_name }}" readonly>
+                            {% endif %}
+
+                            <label class="class-field-label">{% if panel_mode == 'delete' %}Class Name{% else %}New Class Name{% endif %}</label>
+                            <input type="text" name="class_name" class="class-field-input" value="{{ class_form.new_name }}">
+
+                            <label class="class-field-label">Class Teacher</label>
+                            <input type="text" name="class_teacher_name" class="class-field-input" value="{{ class_form.class_teacher_name }}">
+
+                            <label class="class-field-label">Promoting Class</label>
+                            <input type="text" name="promoting_class" class="class-field-input" value="{{ class_form.promoting_class }}">
+
+                            <label class="class-field-label">Repeating Class</label>
+                            <input type="text" name="repeating_class" class="class-field-input" value="{{ class_form.repeating_class }}">
+
+                            <label class="class-field-label">Result Template</label>
+                            <select name="template_name" class="class-field-input">
+                                {% for option in template_options %}
+                                <option value="{{ option }}"{% if class_form.template_name == option %} selected{% endif %}>{{ option }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <button type="submit" class="class-save-button">
+                                {% if panel_mode == 'delete' %}Delete{% elif panel_mode == 'edit' %}Save{% else %}Add{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+{% endblock %}

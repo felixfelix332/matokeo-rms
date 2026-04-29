@@ -1,0 +1,76 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | School Headteacher{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_settings_entry.css' %}">
+{% endblock %}
+
+{% block content_class %} settings-entry-content{% endblock %}
+
+{% block content %}
+<section class="settings-entry-page" aria-labelledby="headteacherTitle">
+    <a href="{{ close_href }}" class="settings-entry-close" aria-label="Close School Headteacher">x</a>
+    <h1 id="headteacherTitle" class="settings-entry-title">School Headteacher</h1>
+
+    {% if messages %}
+    <div class="settings-entry-messages">
+        {% for message in messages %}
+        <div class="settings-entry-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="settings-dialog">
+        {% csrf_token %}
+        <input type="hidden" name="existing_signature" value="{{ headteacher.signature_path }}">
+        <input type="hidden" name="clear_signature" id="clearSignatureFlag" value="0">
+
+        <div class="settings-headteacher-box">
+            <div class="settings-headteacher-grid">
+                <label for="headteacherName" class="settings-label">Name</label>
+                <input id="headteacherName" class="settings-input" type="text" name="name" value="{{ headteacher.name }}">
+                <span></span>
+
+                <label class="settings-label">Signature</label>
+                <div class="settings-signature-preview" id="signaturePreview">
+                    {% if headteacher.signature_url %}
+                    <img src="{{ headteacher.signature_url }}" alt="Headteacher signature">
+                    {% endif %}
+                </div>
+                <div class="settings-user-actions">
+                    <label class="settings-icon-label" title="Upload signature">
+                        <input type="file" name="signature" accept="image/*">
+                        <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/import.svg' %}')"></span>
+                    </label>
+                    <button type="button" class="settings-icon-button is-danger" id="clearSignatureButton" aria-label="Remove signature">
+                        <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/x-circle-fill.svg' %}')"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-submit-row">
+            <button type="submit" class="settings-save-button is-purple">Save</button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_body %}
+<script>
+    (function () {
+        var button = document.getElementById('clearSignatureButton');
+        var flag = document.getElementById('clearSignatureFlag');
+        var preview = document.getElementById('signaturePreview');
+        if (!button) {
+            return;
+        }
+        button.addEventListener('click', function () {
+            flag.value = '1';
+            preview.innerHTML = '';
+        });
+    }());
+</script>
+{% endblock %}

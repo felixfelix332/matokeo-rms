@@ -3,10 +3,10 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'school-portal-dev-key-change-in-production-2026')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'matokeo-rms-dev-key-change-in-production-2026')
 DEBUG = os.getenv('DJANGO_DEBUG', '1').lower() in {'1', 'true', 'yes'}
 ALLOWED_HOSTS = ['*']
-SITE_NAME = 'Mun Matokeo RMS'
+SITE_NAME = 'Matokeo RMS'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,7 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'accounts',
-    'portal',
+    'matokeo',
 ]
 
 MIDDLEWARE = [
@@ -35,7 +35,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'portal' / 'templates'],
+        'DIRS': [BASE_DIR / 'matokeo' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -44,7 +44,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-            'builtins': ['portal.templatetags.teacher_extras'],
         },
     },
 ]
@@ -54,7 +53,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'portal_auth.sqlite3',
+        'NAME': BASE_DIR / 'matokeo_auth.sqlite3',
     },
     'school_data': {
         'ENGINE': 'django.db.backends.sqlite3',

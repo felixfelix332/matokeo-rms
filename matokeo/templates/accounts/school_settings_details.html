@@ -1,0 +1,103 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | School Details{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_settings_entry.css' %}">
+{% endblock %}
+
+{% block content_class %} settings-entry-content{% endblock %}
+
+{% block content %}
+<section class="settings-entry-page" aria-labelledby="schoolDetailsTitle">
+    <a href="{{ close_href }}" class="settings-entry-close" aria-label="Close School Details">x</a>
+    <h1 id="schoolDetailsTitle" class="settings-entry-title">School Details</h1>
+
+    {% if messages %}
+    <div class="settings-entry-messages">
+        {% for message in messages %}
+        <div class="settings-entry-message">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="settings-dialog">
+        {% csrf_token %}
+        <input type="hidden" name="existing_logo" value="{{ form.existing_logo }}">
+        <input type="hidden" name="existing_secondary_logo" value="{{ form.existing_secondary_logo }}">
+        <input type="hidden" name="clear_logo" id="clearLogoFlag" value="0">
+        <input type="hidden" name="clear_secondary_logo" id="clearSecondaryLogoFlag" value="0">
+
+        <div class="settings-media-grid">
+            <div class="settings-media-card">
+                <div class="settings-media-box" data-media-box="logo">
+                    {% if form.logo_url %}
+                    <img src="{{ form.logo_url }}" alt="{{ school.name }} logo">
+                    {% endif %}
+                </div>
+                <div class="settings-media-actions">
+                    <label class="settings-icon-label" title="Upload school logo">
+                        <input type="file" name="logo" accept="image/*">
+                        <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/import.svg' %}')"></span>
+                    </label>
+                    <button type="button" class="settings-icon-button is-danger" data-clear-media="logo" aria-label="Remove logo">
+                        <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/x-circle-fill.svg' %}')"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-media-card">
+                <div class="settings-media-box" data-media-box="secondary">
+                    {% if form.secondary_logo_url %}
+                    <img src="{{ form.secondary_logo_url }}" alt="Secondary school logo">
+                    {% endif %}
+                </div>
+                <div class="settings-media-actions">
+                    <label class="settings-icon-label" title="Upload secondary logo or stamp">
+                        <input type="file" name="secondary_logo" accept="image/*">
+                        <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/import.svg' %}')"></span>
+                    </label>
+                    <button type="button" class="settings-icon-button is-danger" data-clear-media="secondary" aria-label="Remove secondary logo">
+                        <span class="settings-action-icon" style="--settings-icon: url('{% static 'accounts/icons/class_data/x-circle-fill.svg' %}')"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-field">
+            <label for="schoolName">School Name</label>
+            <input id="schoolName" type="text" name="name" value="{{ form.name }}" required>
+        </div>
+
+        <div class="settings-field">
+            <label for="schoolDetails">Other Details</label>
+            <textarea id="schoolDetails" name="other_details">{{ form.other_details }}</textarea>
+        </div>
+
+        <div class="settings-submit-row">
+            <button type="submit" class="settings-save-button">Save</button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_body %}
+<script>
+    (function () {
+        document.querySelectorAll('[data-clear-media]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var target = button.getAttribute('data-clear-media');
+                var flag = target === 'logo' ? document.getElementById('clearLogoFlag') : document.getElementById('clearSecondaryLogoFlag');
+                var box = document.querySelector('[data-media-box="' + target + '"]');
+                if (flag) {
+                    flag.value = '1';
+                }
+                if (box) {
+                    box.innerHTML = '';
+                }
+            });
+        });
+    }());
+</script>
+{% endblock %}

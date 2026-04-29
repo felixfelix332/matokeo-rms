@@ -6,9 +6,9 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
+    path('', RedirectView.as_view(pattern_name='accounts:login', permanent=False)),
     re_path(r'^accounts/(?P<path>.*)$', RedirectView.as_view(url='/%(path)s', permanent=False)),
     path('', include('accounts.urls')),
-    path('', include('portal.urls')),
 ]
 
 if settings.DEBUG:

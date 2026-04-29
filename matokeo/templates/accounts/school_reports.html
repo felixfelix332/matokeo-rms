@@ -1,0 +1,26 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Reports{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_module_menu.css' %}">
+{% endblock %}
+
+{% block content_class %} module-menu-content{% endblock %}
+
+{% block content %}
+<section class="module-menu-page reports-menu-page" aria-labelledby="reportsTitle">
+    <a href="{{ close_href }}" class="module-menu-close" aria-label="Close Reports">x</a>
+    <h1 id="reportsTitle" class="module-menu-title">Reports</h1>
+
+    <div class="module-menu-grid module-menu-grid-reports" aria-label="Reports options">
+        {% for tile in report_tiles %}
+        <a href="{{ tile.href }}" class="module-menu-tile module-menu-tile-{{ tile.tone }}{% if tile.active %} is-active{% endif %}">
+            <span class="module-menu-icon" style="--tile-icon: url('{% static tile.icon_path %}')" aria-hidden="true"></span>
+            <span class="module-menu-label">{{ tile.label }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

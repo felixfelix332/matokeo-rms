@@ -1,0 +1,125 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Broadsheet Class View{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_reports_entry.css' %}">
+{% endblock %}
+
+{% block content_class %} reports-entry-content{% endblock %}
+
+{% block content %}
+<section class="reports-entry-page" aria-labelledby="classBroadsheetTitle">
+    <a href="{{ close_href }}" class="reports-entry-close" aria-label="Close Broadsheet Class View">x</a>
+    <h1 id="classBroadsheetTitle" class="reports-entry-title">Broadsheet (Class View)</h1>
+
+    <div class="reports-entry-main-workspace">
+        <section class="reports-entry-panel">
+            <h2 class="reports-entry-table-heading">{{ report_heading }}</h2>
+            <div class="reports-entry-table-wrap">
+                <table class="reports-entry-table reports-entry-grid-table">
+                    <thead>
+                        <tr>
+                            <th class="reports-entry-admission-col">Admission No.</th>
+                            <th>Name</th>
+                            {% for subject in subjects %}
+                            <th>{{ subject.name }}</th>
+                            {% endfor %}
+                            <th>Total Subjects</th>
+                            <th>Subjects Passed</th>
+                            <th>Average %</th>
+                            <th>Position</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            <td>{{ row.student.admission_number }}</td>
+                            <td>{{ row.student.name }}</td>
+                            {% for subject in row.subjects %}
+                            <td>{{ subject.total }}</td>
+                            {% endfor %}
+                            <td>{{ row.offered_count }}</td>
+                            <td>{{ row.pass_count }}</td>
+                            <td>{{ row.average }}</td>
+                            <td>{{ row.position }}</td>
+                            <td>{{ row.remarks }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{{ subjects|length|add:7 }}" class="reports-entry-empty">No result data found for this class yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if summary_counts %}
+            <table class="reports-entry-grade-summary" aria-label="Grade totals">
+                <thead>
+                    <tr>
+                        {% for item in summary_counts %}
+                        <th>{{ item.label }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for item in summary_counts %}
+                        <td>{{ item.count }}</td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+            {% endif %}
+
+            <div class="reports-entry-summary">
+                <span>No. of Passes: {{ pass_fail_counts.passes }}</span>
+                <span>No. of Fails: {{ pass_fail_counts.fails }}</span>
+                <span>Total: {{ pass_fail_counts.total }}</span>
+            </div>
+            <div class="reports-entry-export-row">
+                <a class="reports-entry-action" href="?{{ query_string }}{% if query_string %}&{% endif %}export=1">Export</a>
+            </div>
+        </section>
+
+        <form method="get" class="reports-entry-filter-card">
+            <h2>Filters</h2>
+            <label>
+                Class
+                <select name="class_id">
+                    {% for class_item in classes %}
+                    <option value="{{ class_item.id }}" {% if selected_class_id == class_item.id|stringformat:"s" %}selected{% endif %}>{{ class_item.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Term
+                <select name="term_id">
+                    {% for term in terms %}
+                    <option value="{{ term.id }}" {% if selected_term_id == term.id|stringformat:"s" %}selected{% endif %}>{{ term.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Model
+                <select name="model">
+                    <option value="1" {% if model == "1" %}selected{% endif %}>Model 1</option>
+                    <option value="2" {% if model == "2" %}selected{% endif %}>Model 2</option>
+                </select>
+            </label>
+            <label>
+                Pass Mark
+                <input type="number" step="0.01" name="pass_mark" value="{{ pass_mark }}">
+            </label>
+            <label class="reports-entry-check-label">
+                <input type="checkbox" name="cumulative" value="1" {% if cumulative %}checked{% endif %}>
+                <span>Cumulative</span>
+            </label>
+            <button type="submit" class="reports-entry-view-button">View</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

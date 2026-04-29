@@ -1,0 +1,448 @@
+.class-data-entry-content {
+    padding: 18px 34px 14px;
+    overflow: hidden;
+}
+
+.class-data-entry-page {
+    height: 100%;
+    min-height: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    color: #111827;
+}
+
+.class-data-entry-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #d41483;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    z-index: 2;
+}
+
+.class-data-entry-title {
+    margin: 0;
+    text-align: center;
+    font-size: clamp(2.15rem, 2.7vw, 3.1rem);
+    font-weight: 400;
+    line-height: 1.08;
+}
+
+.class-data-entry-toolbar {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 28px;
+}
+
+.class-data-entry-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px 14px;
+}
+
+.class-data-entry-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.class-data-entry-field label {
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.class-data-entry-field select {
+    width: 214px;
+    height: 36px;
+    border: 1px solid #cfcfcf;
+    background: #f8f8f8;
+    color: #111827;
+    font: inherit;
+    font-size: 1rem;
+    padding: 0 10px;
+}
+
+.class-data-entry-actions {
+    display: grid;
+    grid-template-columns: 176px 148px;
+    gap: 18px 16px;
+    justify-content: end;
+    align-items: center;
+}
+
+.class-data-entry-action {
+    min-height: 38px;
+    border: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 10px;
+    color: #ffffff;
+    text-decoration: none;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.class-data-entry-action-import {
+    background: #dac4dc;
+    color: #1f2937;
+    border: 2px solid #2d2d2d;
+}
+
+.class-data-entry-action-export {
+    background: #ff604a;
+}
+
+.class-data-entry-action-primary {
+    background: #7160d4;
+}
+
+.class-data-entry-action-save {
+    background: #5f8d10;
+}
+
+.class-data-entry-action-muted {
+    background: #159ba5;
+}
+
+.class-data-entry-action-icon,
+.class-data-entry-search button span,
+.class-data-entry-import-hint-icon {
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+    flex: 0 0 auto;
+    background: currentColor;
+    -webkit-mask: var(--action-icon) center / contain no-repeat;
+    mask: var(--action-icon) center / contain no-repeat;
+}
+
+.class-data-entry-action-primary .class-data-entry-action-icon {
+    color: #59c971;
+}
+
+.class-data-entry-search {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 42px;
+    align-items: center;
+    gap: 12px;
+}
+
+.class-data-entry-search input {
+    height: 36px;
+    border: 2px solid #7d7d7d;
+    background: #ffffff;
+    padding: 0 10px;
+    font: inherit;
+}
+
+.class-data-entry-search button {
+    width: 42px;
+    height: 38px;
+    border: 0;
+    background: transparent;
+    color: #111111;
+    cursor: pointer;
+}
+
+.class-data-entry-search button span {
+    width: 28px;
+    height: 28px;
+}
+
+.class-data-entry-import-note {
+    margin: 10px 0 0 auto;
+    max-width: 455px;
+    color: #6b7280;
+    font-style: italic;
+    text-align: left;
+}
+
+.class-data-entry-table-wrap {
+    margin-top: 8px;
+    flex: 1 1 auto;
+    min-height: 0;
+    border: 2px solid #858585;
+    overflow: auto;
+}
+
+.class-data-entry-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 1rem;
+}
+
+.class-data-entry-table th,
+.class-data-entry-table td {
+    border: 1px solid #d2d2d2;
+    height: 42px;
+    padding: 0 10px;
+    vertical-align: middle;
+    background: #ffffff;
+}
+
+.class-data-entry-table th {
+    height: 48px;
+    color: #28324a;
+    font-weight: 500;
+    text-align: center;
+}
+
+.class-data-entry-table input,
+.class-data-entry-table select {
+    width: 100%;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+
+.class-data-entry-table input:focus,
+.class-data-entry-table select:focus {
+    outline: 2px solid #86c5f4;
+    outline-offset: -2px;
+    background: #ffffff;
+}
+
+.class-data-entry-selector-col {
+    width: 42px;
+}
+
+.class-data-entry-admission-col {
+    width: 150px;
+}
+
+.class-data-entry-name-col {
+    width: 34%;
+}
+
+.class-data-entry-score-col,
+.class-data-entry-attendance-col {
+    width: 120px;
+    text-align: center;
+}
+
+.class-data-entry-group-row td {
+    height: 40px;
+    background: #9fd4f5;
+    color: #111827;
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.class-data-entry-empty {
+    color: #6b7280;
+    font-style: italic;
+}
+
+.class-data-entry-wide-table {
+    min-width: 1660px;
+    font-size: 0.92rem;
+}
+
+.class-data-entry-wide-table th,
+.class-data-entry-wide-table td {
+    height: 38px;
+    padding: 0 8px;
+}
+
+.class-data-entry-wide-table .class-data-entry-name-col {
+    width: 250px;
+}
+
+.class-data-entry-wide-table .class-data-entry-admission-col {
+    width: 132px;
+}
+
+.class-data-entry-attribute-col {
+    width: 142px;
+}
+
+.class-data-entry-footerbar {
+    flex: 0 0 48px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.class-data-entry-count,
+.class-data-entry-filter {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.class-data-entry-filter select {
+    width: 156px;
+    height: 34px;
+    border: 1px solid #cfcfcf;
+    background: #ffffff;
+    font: inherit;
+    padding: 0 8px;
+}
+
+.class-data-entry-modal[hidden],
+.class-data-entry-file-input {
+    display: none;
+}
+
+.class-data-entry-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.class-data-entry-dialog {
+    position: relative;
+    width: 560px;
+    min-height: 424px;
+    padding: 24px 50px 24px;
+    background: #ffffff;
+    border: 2px solid #5f5f5f;
+    color: #111827;
+}
+
+.class-data-entry-dialog h2 {
+    margin: 0 46px 28px;
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: 400;
+    line-height: 1.08;
+}
+
+.class-data-entry-dialog-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 48px;
+    height: 44px;
+    border: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #d41483;
+    color: #ffffff;
+    font: inherit;
+    font-size: 1.25rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.class-data-entry-dialog-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.class-data-entry-dialog-table th,
+.class-data-entry-dialog-table td {
+    height: 42px;
+    border: 1px solid #c9c9c9;
+    padding: 0 10px;
+    text-align: left;
+}
+
+.class-data-entry-dialog-table input {
+    width: 100%;
+    height: 32px;
+    border: 0;
+    font: inherit;
+}
+
+.class-data-entry-dialog-options {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.class-data-entry-dialog-submit {
+    width: 268px;
+    min-height: 44px;
+    margin: 58px auto 0;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #7865e7;
+    color: #ffffff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.class-data-entry-comment-box {
+    margin-top: 28px;
+    flex: 1 1 auto;
+    min-height: 0;
+    border: 2px solid #858585;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #111827;
+    font-size: 1.35rem;
+    line-height: 1.55;
+}
+
+@media (max-width: 1280px) {
+    .class-data-entry-content {
+        padding: 16px 24px 12px;
+    }
+
+    .class-data-entry-toolbar {
+        margin-top: 28px;
+        gap: 20px;
+    }
+
+    .class-data-entry-actions {
+        grid-template-columns: 160px 132px;
+        gap: 14px 12px;
+    }
+
+    .class-data-entry-action {
+        font-size: 0.92rem;
+    }
+}
+
+@media (max-width: 980px) {
+    .class-data-entry-content {
+        overflow: auto;
+    }
+
+    .class-data-entry-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .class-data-entry-actions {
+        justify-content: start;
+    }
+}

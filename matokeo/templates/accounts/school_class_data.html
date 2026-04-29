@@ -1,0 +1,37 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Class Data{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_class_data.css' %}">
+{% endblock %}
+
+{% block content_class %} class-data-content{% endblock %}
+
+{% block content %}
+<section class="class-data-page" aria-labelledby="classDataTitle">
+    <a href="{{ close_href }}" class="class-data-close" aria-label="Close Class Data">x</a>
+    <h1 id="classDataTitle" class="class-data-title">Class Data</h1>
+
+    <div class="class-data-menu" aria-label="Class data options">
+        <div class="class-data-row class-data-row-top">
+            {% for tile in class_data_tiles|slice:":4" %}
+            <a href="{{ tile.href }}" class="class-data-tile class-data-tile-{{ tile.tone }}">
+                <span class="class-data-icon" style="--tile-icon: url('{% static tile.icon_path %}')" aria-hidden="true"></span>
+                <span class="class-data-label">{{ tile.label }}</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="class-data-row class-data-row-bottom">
+            {% for tile in class_data_tiles|slice:"4:" %}
+            <a href="{{ tile.href }}" class="class-data-tile class-data-tile-{{ tile.tone }}">
+                <span class="class-data-icon" style="--tile-icon: url('{% static tile.icon_path %}')" aria-hidden="true"></span>
+                <span class="class-data-label">{{ tile.label }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

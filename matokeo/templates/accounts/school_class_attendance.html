@@ -1,0 +1,111 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Attendance{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_class_entry.css' %}">
+{% endblock %}
+
+{% block content_class %} class-data-entry-content{% endblock %}
+
+{% block content %}
+<section class="class-data-entry-page" aria-labelledby="attendanceTitle">
+    <a href="{{ close_href }}" class="class-data-entry-close" aria-label="Close Attendance">x</a>
+    <h1 id="attendanceTitle" class="class-data-entry-title">Attendance</h1>
+
+    <div class="class-data-entry-toolbar">
+        <form method="get" class="class-data-entry-filters">
+            <div class="class-data-entry-field">
+                <label for="attendanceClass">Class</label>
+                <select id="attendanceClass" name="class_id" onchange="this.form.submit()">
+                    {% for class_item in classes %}
+                    <option value="{{ class_item.id }}" {% if selected_class_id == class_item.id|stringformat:"s" %}selected{% endif %}>{{ class_item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="class-data-entry-field">
+                <label for="attendanceTerm">Term</label>
+                <select id="attendanceTerm" name="term_id" onchange="this.form.submit()">
+                    {% for term in terms %}
+                    <option value="{{ term.id }}" {% if selected_term_id == term.id|stringformat:"s" %}selected{% endif %}>{{ term.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        <div class="class-data-entry-actions">
+            <label class="class-data-entry-action class-data-entry-action-import" for="attendanceImportFile">
+                <span class="class-data-entry-action-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/import.svg' %}')"></span>
+                <span>Import Attendance</span>
+            </label>
+            <a class="class-data-entry-action class-data-entry-action-export" href="?class_id={{ selected_class_id }}&term_id={{ selected_term_id }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}&export=1">
+                <span class="class-data-entry-action-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/export.svg' %}')"></span>
+                <span>Export Attendance</span>
+            </a>
+            <button type="submit" form="attendanceForm" class="class-data-entry-action class-data-entry-action-save">Save Changes</button>
+            <span></span>
+            <input id="attendanceImportFile" class="class-data-entry-file-input" type="file" accept=".csv,.xlsx,.xls">
+        </div>
+    </div>
+
+    <form method="get" class="class-data-entry-search">
+        <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+        <input type="hidden" name="term_id" value="{{ selected_term_id }}">
+        <input type="search" name="q" value="{{ search_query }}" aria-label="Search students">
+        <button type="submit" aria-label="Search">
+            <span style="--action-icon: url('{% static 'accounts/icons/class_data/search.svg' %}')"></span>
+        </button>
+    </form>
+
+    <div class="class-data-entry-import-note">You can also drag-and-drop the Excel Attendance files into the view box</div>
+
+    <form method="post" id="attendanceForm" class="class-data-entry-table-wrap">
+        {% csrf_token %}
+        <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+        <input type="hidden" name="term_id" value="{{ selected_term_id }}">
+        <table class="class-data-entry-table">
+            <thead>
+                <tr>
+                    <th class="class-data-entry-selector-col"></th>
+                    <th class="class-data-entry-admission-col">Admission No.</th>
+                    <th class="class-data-entry-name-col">Name</th>
+                    <th class="class-data-entry-attendance-col">NoOfAbsent</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="class-data-entry-group-row">
+                    <td><span aria-hidden="true">^</span></td>
+                    <td colspan="3"></td>
+                </tr>
+                {% for row in rows %}
+                <tr>
+                    <td></td>
+                    <td>{{ row.admission_number }}</td>
+                    <td>{{ row.name }}</td>
+                    <td><input type="number" min="0" name="absent_{{ row.id }}" value="{{ row.absent_count }}"></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td></td>
+                    <td colspan="3" class="class-data-entry-empty">No students found for this class yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+
+    <div class="class-data-entry-footerbar">
+        <div class="class-data-entry-count">
+            <span>No. of Students:</span>
+            <strong>{{ rows|length }}</strong>
+        </div>
+        <div class="class-data-entry-filter">
+            <label for="attendanceFilter">Filter</label>
+            <select id="attendanceFilter">
+                <option>All</option>
+            </select>
+        </div>
+    </div>
+</section>
+{% endblock %}

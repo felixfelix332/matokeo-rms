@@ -398,6 +398,22 @@ body {
     letter-spacing: 0.04em;
 }
 
+.entry-auto-message {
+    transition: opacity 180ms ease, transform 180ms ease, max-height 220ms ease, margin 220ms ease, padding 220ms ease;
+}
+
+.entry-auto-message.is-dismissed {
+    opacity: 0;
+    transform: translateY(-6px);
+    max-height: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden;
+    pointer-events: none;
+}
+
 @media (max-width: 1280px) {
     .entry-layout {
         grid-template-columns: 154px 1fr;

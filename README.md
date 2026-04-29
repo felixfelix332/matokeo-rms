@@ -6,13 +6,13 @@ The project started from practical school report workflows and is being shaped i
 
 ## Project Status
 
-Matokeo RMS is currently an early-stage Django application. Core workflows exist, including school setup, student records, teacher portals, marks entry, report-card previews, template sections, and local SQLite-backed development data. The next major engineering focus is to move hardcoded report logic into configuration-driven modules so contributors can add new grading systems and layouts safely.
+Matokeo RMS is currently an early-stage Django application. Core workflows exist, including school setup, student records, class data, marks entry, report-card previews, template sections, and local SQLite-backed development data. The next major engineering focus is to move hardcoded report logic into configuration-driven modules so contributors can add new grading systems and layouts safely.
 
 ## Features
 
 - School setup with branding, sessions, terms, classes, subjects, teachers, and students.
-- Admin login, teacher login, and student portal entry points.
-- Teacher workflows for marks entry, attendance, comments, attributes, class lists, broadsheets, and report cards.
+- Admin login and school-entry workflows for managing result data.
+- Class Data workflows for marks entry, attendance, comments, attributes, class lists, broadsheets, and report cards.
 - Template editor for report-card sections such as school details, student details, academic performance, grading/rating keys, skills/attributes, and comments.
 - Multiple academic performance layouts for different assessment styles.
 - Component-based score storage using JSON-backed component scores.
@@ -107,7 +107,7 @@ Open `http://127.0.0.1:8000/` in your browser.
 1. Log in as an administrator.
 2. Create or select a school.
 3. Add sessions, terms, classes, subjects, teachers, and students.
-4. Use the teacher portal to enter marks, attendance, attributes, and comments.
+4. Use Class Data to enter marks, attendance, attributes, and comments.
 5. Generate result views, broadsheets, and report cards.
 6. Use the template editor to preview report-card section layouts.
 
@@ -118,9 +118,8 @@ Local SQLite databases are intentionally ignored by Git. Each developer should c
 ```text
 accounts/                         Authentication, school-entry flows, template-editor registry and preview services
 config/                           Django settings, URLs, WSGI/ASGI, and database routing
-portal/                           Student, teacher, report-card, marks, attendance, and school-management workflows
-portal/templates/accounts/        Admin/school-entry pages and template-editor screens
-portal/templates/portal/          Portal dashboards and teacher/student pages
+matokeo/                          School data models and Matokeo RMS templates
+matokeo/templates/accounts/       Matokeo RMS pages, reports, class data, settings, and template-editor screens
 static/                           CSS, images, and static UI assets
 ```
 
@@ -129,8 +128,7 @@ Important extension points:
 - `accounts/template_registry.py` defines available report-card template sections and models.
 - `accounts/services/template_preview.py` normalizes model selections and builds preview state.
 - `accounts/views_template_editor.py` currently holds template-editor customization data and should be split as the system grows.
-- `portal/marks_helpers.py` contains score-component helpers and the current hardcoded grading function.
-- `portal/teacher_views.py` contains many teacher workflows and should be modularized over time.
+- `accounts/views.py` currently holds many school-entry workflows and should be split as the system grows.
 
 ## Contributing
 

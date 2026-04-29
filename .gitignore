@@ -27,6 +27,7 @@ media/
 
 # Local/generated artifacts
 artifacts/
+.codex_tmp/
 tmp_s4s6_video_frames/
 *_snapshot.html
 live_template_editor_snapshot.html

@@ -1,0 +1,180 @@
+{% extends "accounts/school_shell_base.html" %}
+{% load static %}
+
+{% block page_title %}{{ school.name }} | Marks / Scores{% endblock %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'accounts/school_class_entry.css' %}">
+{% endblock %}
+
+{% block content_class %} class-data-entry-content{% endblock %}
+
+{% block content %}
+<section class="class-data-entry-page" aria-labelledby="marksScoresTitle">
+    <a href="{{ close_href }}" class="class-data-entry-close" aria-label="Close Marks / Scores">x</a>
+    <h1 id="marksScoresTitle" class="class-data-entry-title">Marks / Scores</h1>
+
+    <div class="class-data-entry-toolbar">
+        <form method="get" class="class-data-entry-filters">
+            <div class="class-data-entry-field">
+                <label for="marksClass">Class</label>
+                <select id="marksClass" name="class_id" onchange="this.form.submit()">
+                    {% for class_item in classes %}
+                    <option value="{{ class_item.id }}" {% if selected_class_id == class_item.id|stringformat:"s" %}selected{% endif %}>{{ class_item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="class-data-entry-field">
+                <label for="marksSubject">Subject</label>
+                <select id="marksSubject" name="subject_id" onchange="this.form.submit()">
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if selected_subject_id == subject.id|stringformat:"s" %}selected{% endif %}>{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="class-data-entry-field">
+                <label for="marksTerm">Term</label>
+                <select id="marksTerm" name="term_id" onchange="this.form.submit()">
+                    {% for term in terms %}
+                    <option value="{{ term.id }}" {% if selected_term_id == term.id|stringformat:"s" %}selected{% endif %}>{{ term.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        <div class="class-data-entry-actions">
+            <label class="class-data-entry-action class-data-entry-action-import" for="marksImportFile">
+                <span class="class-data-entry-action-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/import.svg' %}')"></span>
+                <span>Import Scoresheet</span>
+            </label>
+            <a class="class-data-entry-action class-data-entry-action-export" href="?class_id={{ selected_class_id }}&subject_id={{ selected_subject_id }}&term_id={{ selected_term_id }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}&export=1">
+                <span class="class-data-entry-action-icon" style="--action-icon: url('{% static 'accounts/icons/class_data/export.svg' %}')"></span>
+                <span>Export Scoresheet</span>
+            </a>
+            <button type="submit" form="marksScoresForm" class="class-data-entry-action class-data-entry-action-save">Save Changes</button>
+            <button type="button" class="class-data-entry-action class-data-entry-action-muted" data-class-data-open="moderateScoresModal">Moderate Scores</button>
+            <input id="marksImportFile" class="class-data-entry-file-input" type="file" accept=".csv,.xlsx,.xls">
+        </div>
+    </div>
+
+    <form method="get" class="class-data-entry-search">
+        <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+        <input type="hidden" name="subject_id" value="{{ selected_subject_id }}">
+        <input type="hidden" name="term_id" value="{{ selected_term_id }}">
+        <input type="search" name="q" value="{{ search_query }}" aria-label="Search students">
+        <button type="submit" aria-label="Search">
+            <span style="--action-icon: url('{% static 'accounts/icons/class_data/search.svg' %}')"></span>
+        </button>
+    </form>
+
+    <div class="class-data-entry-import-note">You can also drag-and-drop the Excel Marksheet files into the view box</div>
+
+    <form method="post" id="marksScoresForm" class="class-data-entry-table-wrap">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_scores">
+        <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+        <input type="hidden" name="subject_id" value="{{ selected_subject_id }}">
+        <input type="hidden" name="term_id" value="{{ selected_term_id }}">
+        <table class="class-data-entry-table">
+            <thead>
+                <tr>
+                    <th class="class-data-entry-selector-col"></th>
+                    <th class="class-data-entry-admission-col">Admission No.</th>
+                    <th class="class-data-entry-name-col">Name</th>
+                    <th class="class-data-entry-score-col">CA1</th>
+                    <th class="class-data-entry-score-col">CA2</th>
+                    <th class="class-data-entry-score-col">Exam</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="class-data-entry-group-row">
+                    <td><span aria-hidden="true">^</span></td>
+                    <td colspan="5"></td>
+                </tr>
+                {% for row in rows %}
+                <tr>
+                    <td></td>
+                    <td>{{ row.admission_number }}</td>
+                    <td>{{ row.name }}</td>
+                    <td><input type="number" step="0.01" name="ca1_{{ row.id }}" value="{{ row.score_values.ca1 }}"></td>
+                    <td><input type="number" step="0.01" name="ca2_{{ row.id }}" value="{{ row.score_values.ca2 }}"></td>
+                    <td><input type="number" step="0.01" name="exam_{{ row.id }}" value="{{ row.score_values.exam }}"></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td></td>
+                    <td colspan="5" class="class-data-entry-empty">No students found for this class yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+
+    <div class="class-data-entry-footerbar">
+        <div class="class-data-entry-count">
+            <span>No. of Students:</span>
+            <strong>{{ rows|length }}</strong>
+        </div>
+        <div class="class-data-entry-filter">
+            <label for="marksFilter">Filter</label>
+            <select id="marksFilter">
+                <option>All</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="class-data-entry-modal" id="moderateScoresModal" hidden>
+        <form method="post" class="class-data-entry-dialog" aria-labelledby="moderateScoresTitle">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="moderate_scores">
+            <input type="hidden" name="class_id" value="{{ selected_class_id }}">
+            <input type="hidden" name="subject_id" value="{{ selected_subject_id }}">
+            <input type="hidden" name="term_id" value="{{ selected_term_id }}">
+            <button type="button" class="class-data-entry-dialog-close" data-class-data-close aria-label="Close Moderate Scores">x</button>
+            <h2 id="moderateScoresTitle">Moderate Scores</h2>
+            <table class="class-data-entry-dialog-table">
+                <thead>
+                    <tr>
+                        <th>Column</th>
+                        <th>Score to Add</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for component in score_components %}
+                    <tr>
+                        <td>{{ component.1 }}</td>
+                        <td><input type="number" step="0.01" name="moderate_{{ component.0 }}"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <label class="class-data-entry-dialog-options">
+                <input type="checkbox" name="apply_all_subjects" value="1">
+                <span>Apply to All Subjects</span>
+            </label>
+            <button type="submit" class="class-data-entry-dialog-submit">Moderate</button>
+        </form>
+    </div>
+</section>
+
+<script>
+(function () {
+    document.querySelectorAll('[data-class-data-open]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var modal = document.getElementById(button.getAttribute('data-class-data-open'));
+            if (modal) {
+                modal.hidden = false;
+            }
+        });
+    });
+    document.querySelectorAll('[data-class-data-close]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            var modal = button.closest('.class-data-entry-modal');
+            if (modal) {
+                modal.hidden = true;
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}
