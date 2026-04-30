@@ -1,6 +1,6 @@
 {
   "version": "0.1.4",
-  "installer_url": "https://github.com/felixfelix332/matokeo-rms/releases/download/v0.1.4/Matokeo-RMS-Setup-0.1.4.exe",
-  "sha256": "",
+  "installer_url": "https://github.com/felixfelix332/matokeo-rms/raw/main/releases/Matokeo-RMS-Setup-0.1.4.exe",
+  "sha256": "fb7c56dd1ee92f4681b941d0aead54a4cee1e130504ce94c67c3769a7519b73c",
   "notes": "Adds the native Matokeo RMS desktop shell, hides local URLs, keeps the app title and icon branded, and replaces browser-like loading with an internal loading overlay."
 }

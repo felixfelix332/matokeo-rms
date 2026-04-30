@@ -142,13 +142,13 @@ git tag v0.1.4
 git push origin v0.1.4
 ```
 
-GitHub Actions will build `Matokeo-RMS-Setup-0.1.4.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
+GitHub Actions will build `Matokeo-RMS-Setup-0.1.4.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code when Actions are available.
 
 Current direct installer download:
 
-- [Matokeo RMS latest release](https://github.com/felixfelix332/matokeo-rms/releases/latest)
+- [Matokeo RMS Setup 0.1.4](https://github.com/felixfelix332/matokeo-rms/raw/main/releases/Matokeo-RMS-Setup-0.1.4.exe)
 
-If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.4` and update the installer in `releases/`.
+If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.4`, update the installer in `releases/`, and update `releases/latest.json` with the installer hash.
 
 Desktop builds check `releases/latest.json` on startup and prompt users when a newer installer is available. The first updater-enabled version is `0.1.3`, so users on older installers must manually install `0.1.4` once before automatic update checks can work. Version `0.1.4` also bundles the native WebView shell so users do not see browser chrome or localhost URLs.
 
@@ -174,7 +174,7 @@ Username: admin
 Password: admin
 ```
 
-Generated installers and app bundles should be uploaded to GitHub Releases or the MunTech website download page, not committed to the repository.
+Generated installers and app bundles should normally be uploaded to GitHub Releases or the MunTech website download page. The `releases/` mirror is kept only as a fallback download/update channel when GitHub Actions cannot publish a release asset.
 
 The production desktop launcher runs Matokeo inside a native WebView shell. It keeps the Matokeo RMS title and icon fixed, hides localhost URLs, and uses in-app loading feedback instead of browser chrome.
 
