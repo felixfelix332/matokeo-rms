@@ -138,17 +138,19 @@ Outputs:
 To publish a downloadable installer on GitHub, push a version tag:
 
 ```powershell
-git tag v0.1.2
-git push origin v0.1.2
+git tag v0.1.3
+git push origin v0.1.3
 ```
 
-GitHub Actions will build `Matokeo-RMS-Setup-0.1.2.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
+GitHub Actions will build `Matokeo-RMS-Setup-0.1.3.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
 
 Current direct installer download:
 
-- [Matokeo-RMS-Setup-0.1.2.exe](releases/Matokeo-RMS-Setup-0.1.2.exe)
+- [Matokeo-RMS-Setup-0.1.3.exe](releases/Matokeo-RMS-Setup-0.1.3.exe)
 
-If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.2` and update the installer in `releases/`.
+If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.3` and update the installer in `releases/`.
+
+Desktop builds check `releases/latest.json` on startup and prompt users when a newer installer is available. The first updater-enabled version is `0.1.3`, so users on older installers must manually install `0.1.3` once before automatic update checks can work.
 
 The first desktop run creates local SQLite databases and a default admin account if no users exist:
 

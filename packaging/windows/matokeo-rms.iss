@@ -2,7 +2,7 @@
 #define MyAppPublisher "MunTech"
 #define MyAppExeName "MatokeoRMS.exe"
 #ifndef MyAppVersion
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.3"
 #endif
 
 [Setup]
@@ -18,6 +18,8 @@ OutputBaseFilename=Matokeo-RMS-Setup-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=matokeo-rms.ico
+UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

@@ -9,17 +9,26 @@ normal users.
 from __future__ import annotations
 
 import os
+import hashlib
+import json
+import re
+import shutil
 import socket
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import threading
 import time
+import urllib.error
+import urllib.request
 from pathlib import Path
 import webbrowser
 
 
 APP_NAME = "Matokeo RMS"
+APP_VERSION = "0.1.3"
+UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/felixfelix332/matokeo-rms/main/releases/latest.json"
 
 
 def _is_frozen() -> bool:
@@ -81,6 +90,109 @@ def _wait_for_server(port: int, timeout_seconds: float = 20.0) -> None:
                 return
         time.sleep(0.1)
     raise RuntimeError("Matokeo RMS did not finish starting in time.")
+
+
+def _version_parts(version: str) -> tuple[int, ...]:
+    parts = tuple(int(part) for part in re.findall(r"\d+", str(version)))
+    return parts or (0,)
+
+
+def _is_newer_version(candidate: str, current: str) -> bool:
+    candidate_parts = _version_parts(candidate)
+    current_parts = _version_parts(current)
+    length = max(len(candidate_parts), len(current_parts))
+    return candidate_parts + (0,) * (length - len(candidate_parts)) > current_parts + (0,) * (length - len(current_parts))
+
+
+def _show_desktop_message(title: str, message: str) -> None:
+    try:
+        import tkinter
+        from tkinter import messagebox
+
+        root = tkinter.Tk()
+        root.withdraw()
+        messagebox.showinfo(title, message)
+        root.destroy()
+    except Exception:
+        print(f"{title}\n{message}")
+
+
+def _confirm_desktop_action(title: str, message: str) -> bool:
+    try:
+        import tkinter
+        from tkinter import messagebox
+
+        root = tkinter.Tk()
+        root.withdraw()
+        confirmed = messagebox.askyesno(title, message)
+        root.destroy()
+        return bool(confirmed)
+    except Exception:
+        print(f"{title}\n{message}")
+        return False
+
+
+def _download_update_installer(installer_url: str, version: str, expected_sha256: str = "") -> Path:
+    update_dir = Path(tempfile.gettempdir()) / "MunTech" / APP_NAME / "updates"
+    update_dir.mkdir(parents=True, exist_ok=True)
+    installer_path = update_dir / f"Matokeo-RMS-Setup-{version}.exe"
+
+    with urllib.request.urlopen(installer_url, timeout=120) as response:
+        with installer_path.open("wb") as output:
+            shutil.copyfileobj(response, output)
+
+    if expected_sha256:
+        digest = hashlib.sha256(installer_path.read_bytes()).hexdigest()
+        if digest.lower() != expected_sha256.lower():
+            installer_path.unlink(missing_ok=True)
+            raise RuntimeError("The downloaded update did not match the expected checksum.")
+
+    return installer_path
+
+
+def maybe_start_update() -> bool:
+    if not _is_frozen() or os.getenv("MATOKEO_DISABLE_UPDATES") == "1":
+        return False
+
+    manifest_url = os.getenv("MATOKEO_UPDATE_MANIFEST_URL", UPDATE_MANIFEST_URL)
+    try:
+        with urllib.request.urlopen(manifest_url, timeout=5) as response:
+            manifest = json.loads(response.read().decode("utf-8"))
+    except (OSError, urllib.error.URLError, json.JSONDecodeError):
+        return False
+
+    latest_version = str(manifest.get("version", "")).strip()
+    installer_url = str(manifest.get("installer_url", "")).strip()
+    if not latest_version or not installer_url or not _is_newer_version(latest_version, APP_VERSION):
+        return False
+
+    notes = str(manifest.get("notes", "")).strip()
+    prompt = (
+        f"Matokeo RMS {latest_version} is available.\n\n"
+        f"Installed version: {APP_VERSION}\n\n"
+        "Download and start the installer now?"
+    )
+    if notes:
+        prompt += f"\n\nWhat's new:\n{notes}"
+
+    if not _confirm_desktop_action("Matokeo RMS Update", prompt):
+        return False
+
+    try:
+        installer_path = _download_update_installer(
+            installer_url,
+            latest_version,
+            str(manifest.get("sha256", "")).strip(),
+        )
+    except Exception as exc:
+        _show_desktop_message(
+            "Matokeo RMS Update",
+            f"The update could not be downloaded.\n\n{exc}\n\nYou can continue using the current version.",
+        )
+        return False
+
+    subprocess.Popen([str(installer_path)])
+    return True
 
 
 def initialize_local_data() -> None:
@@ -171,6 +283,9 @@ def open_desktop_window(url: str) -> None:
 def main() -> None:
     if "--reset-admin-password" in sys.argv:
         reset_desktop_admin_password()
+        return
+
+    if maybe_start_update():
         return
 
     configure_environment()
