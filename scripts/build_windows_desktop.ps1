@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "0.1.3"
+    [string]$Version = "0.1.4"
 )
 
 $ErrorActionPreference = "Stop"
@@ -20,6 +20,11 @@ function Invoke-Checked {
 }
 
 Write-Host "Building Matokeo RMS desktop bundle..." -ForegroundColor Cyan
+$pythonVersion = & python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+if ([version]$pythonVersion -ge [version]"3.14") {
+    throw "Desktop builds require Python 3.12 or 3.13 because the native WebView shell dependency does not support Python $pythonVersion yet."
+}
+
 Invoke-Checked python @("-m", "pip", "install", "--upgrade", "pip")
 Invoke-Checked python @("-m", "pip", "install", "-r", "requirements-desktop.txt")
 

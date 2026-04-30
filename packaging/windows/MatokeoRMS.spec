@@ -17,15 +17,9 @@ hiddenimports = (
     + collect_submodules("config")
     + collect_submodules("matokeo")
     + collect_submodules("django")
+    + collect_submodules("webview")
     + ["waitress"]
 )
-
-try:
-    import webview  # noqa: F401
-except Exception:
-    pass
-else:
-    hiddenimports += collect_submodules("webview")
 
 
 a = Analysis(

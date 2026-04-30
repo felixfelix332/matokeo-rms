@@ -3,8 +3,4 @@
 # Desktop runtime and packaging.
 waitress>=3.0
 pyinstaller>=6.0
-
-# Optional native embedded window:
-# pywebview can be installed separately for Python versions where its
-# Windows dependencies are available. The default launcher works without it.
-# pywebview>=5.0
+pywebview>=5.0; python_version < "3.14"

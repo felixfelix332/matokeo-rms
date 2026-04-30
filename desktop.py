@@ -27,7 +27,7 @@ import webbrowser
 
 
 APP_NAME = "Matokeo RMS"
-APP_VERSION = "0.1.3"
+APP_VERSION = "0.1.4"
 UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/felixfelix332/matokeo-rms/main/releases/latest.json"
 
 
@@ -259,25 +259,23 @@ def run_server(port: int) -> None:
 def open_desktop_window(url: str) -> None:
     try:
         import webview
-    except ImportError:
-        edge_paths = [
-            Path(os.environ.get("ProgramFiles", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-            Path(os.environ.get("ProgramFiles(x86)", "")) / "Microsoft" / "Edge" / "Application" / "msedge.exe",
-        ]
-        for edge_path in edge_paths:
-            if edge_path.exists():
-                subprocess.Popen([str(edge_path), f"--app={url}", "--new-window"])
-                break
-        else:
-            webbrowser.open(url)
+    except ImportError as exc:
+        if _is_frozen():
+            _show_desktop_message(
+                APP_NAME,
+                "The native desktop shell is missing. Please reinstall Matokeo RMS with the latest installer.",
+            )
+            raise RuntimeError("pywebview is required for installed desktop builds.") from exc
 
+        webbrowser.open(url)
         print(f"{APP_NAME} is running at {url}")
-        print("Close this launcher window to stop Matokeo RMS.")
+        print("Install pywebview to run Matokeo RMS inside the native desktop shell.")
         while True:
             time.sleep(3600)
 
+    icon_path = _code_root() / "static" / "accounts" / "icons" / "app" / "matokeo-rms.ico"
     webview.create_window(APP_NAME, url, width=1366, height=768, min_size=(1024, 640))
-    webview.start()
+    webview.start(gui="edgechromium", icon=str(icon_path) if icon_path.exists() else None)
 
 
 def main() -> None:

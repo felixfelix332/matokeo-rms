@@ -120,7 +120,7 @@ Matokeo RMS can also run as an offline-first Windows desktop app. The desktop la
 Build requirements:
 
 - Windows.
-- Python 3.12 or 3.13 is recommended for release builds.
+- Python 3.12 or 3.13 for release builds. Python 3.14 is not supported for installer builds until the native WebView dependency supports it.
 - Python with `python -m pip` available.
 - Inno Setup 6 if you want a `.exe` installer.
 
@@ -138,19 +138,19 @@ Outputs:
 To publish a downloadable installer on GitHub, push a version tag:
 
 ```powershell
-git tag v0.1.3
-git push origin v0.1.3
+git tag v0.1.4
+git push origin v0.1.4
 ```
 
-GitHub Actions will build `Matokeo-RMS-Setup-0.1.3.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
+GitHub Actions will build `Matokeo-RMS-Setup-0.1.4.exe` and attach it to a GitHub Release. Users should download the installer from the repository's **Releases** page instead of downloading source code.
 
 Current direct installer download:
 
-- [Matokeo-RMS-Setup-0.1.3.exe](releases/Matokeo-RMS-Setup-0.1.3.exe)
+- [Matokeo RMS latest release](https://github.com/felixfelix332/matokeo-rms/releases/latest)
 
-If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.3` and update the installer in `releases/`.
+If GitHub Actions is temporarily unavailable, build locally with `.\scripts\build_windows_desktop.ps1 -Version 0.1.4` and update the installer in `releases/`.
 
-Desktop builds check `releases/latest.json` on startup and prompt users when a newer installer is available. The first updater-enabled version is `0.1.3`, so users on older installers must manually install `0.1.3` once before automatic update checks can work.
+Desktop builds check `releases/latest.json` on startup and prompt users when a newer installer is available. The first updater-enabled version is `0.1.3`, so users on older installers must manually install `0.1.4` once before automatic update checks can work. Version `0.1.4` also bundles the native WebView shell so users do not see browser chrome or localhost URLs.
 
 The first desktop run creates local SQLite databases and a default admin account if no users exist:
 
@@ -176,7 +176,7 @@ Password: admin
 
 Generated installers and app bundles should be uploaded to GitHub Releases or the MunTech website download page, not committed to the repository.
 
-The default desktop launcher opens Matokeo in a local browser/app-mode window. A native embedded desktop window can be enabled later with `pywebview` on Python versions where its Windows dependencies are available.
+The production desktop launcher runs Matokeo inside a native WebView shell. It keeps the Matokeo RMS title and icon fixed, hides localhost URLs, and uses in-app loading feedback instead of browser chrome.
 
 ## Project Structure
 

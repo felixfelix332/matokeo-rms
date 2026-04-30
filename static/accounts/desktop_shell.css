@@ -1,0 +1,76 @@
+.matokeo-desktop-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(2px);
+}
+
+.matokeo-desktop-loader.is-visible {
+    display: flex;
+}
+
+.matokeo-desktop-loader-card {
+    min-width: 260px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 22px 50px rgba(15, 23, 42, 0.14);
+    padding: 24px 28px;
+    text-align: center;
+    color: #111827;
+    font-family: Inter, Arial, sans-serif;
+}
+
+.matokeo-desktop-loader-ring {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 14px;
+    border: 4px solid #dbeafe;
+    border-top-color: #0f766e;
+    border-radius: 999px;
+    animation: matokeo-loader-spin 0.72s linear infinite;
+}
+
+.matokeo-desktop-loader-title {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.matokeo-desktop-loader-bar {
+    position: relative;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #d1fae5;
+}
+
+.matokeo-desktop-loader-bar::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: -40%;
+    width: 40%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #16a34a, #0f766e);
+    animation: matokeo-loader-bar 1.05s ease-in-out infinite;
+}
+
+@keyframes matokeo-loader-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes matokeo-loader-bar {
+    0% {
+        left: -40%;
+    }
+    100% {
+        left: 100%;
+    }
+}
