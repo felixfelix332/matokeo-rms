@@ -243,4 +243,7 @@ These are strong areas for contributors who want to help the project become glob
 
 ## License
 
-Matokeo RMS is released under the MIT License. See [LICENSE](LICENSE).
+Matokeo RMS is released under the MIT License. See [LICENSE](LICENSE).    
+
+## **usage**
+Matokeo RMS is currently being used by a school in Mombasa, Kenya to manage student academic records and generate report cards.
